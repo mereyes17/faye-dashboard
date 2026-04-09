@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faye — Foro Consulting</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FDFCFB;
+  --pink: #F6E5EA;
+  --pink-mid: #E8C8D2;
+  --pink-dark: #C4829A;
+  --pink-text: #8B4560;
+  --surface: #FFFFFF;
+  --border: #EDE8E3;
+  --text: #1C1714;
+  --text-muted: #9C948E;
+  --text-light: #C4BCB6;
+  --green: #3A7A5A;
+  --green-bg: #EEF6F2;
+  --amber: #9A6B1A;
+  --amber-bg: #FBF3E3;
+  --red: #A63228;
+  --red-bg: #FAEAE8;
+  --lopa: #6B4A8B;
+  --lopa-bg: #F2EDF8;
+  --laiya: #1A5F6B;
+  --laiya-bg: #E8F4F6;
+  --doodle: #C4829A;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; font-size:13px; line-height:1.5; }
+
+/* LOGIN */
+#login-screen { position:fixed; inset:0; background:var(--pink); display:flex; align-items:center; justify-content:center; z-index:1000; }
+.login-box { background:white; padding:52px 48px; width:360px; border:1px solid var(--border); }
+.login-brand { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:300; color:var(--text); margin-bottom:2px; }
+.login-sub { font-size:10px; color:var(--text-muted); letter-spacing:.12em; text-transform:uppercase; margin-bottom:36px; }
+.login-label { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; display:block; }
+.login-input { width:100%; padding:11px 14px; border:1px solid var(--border); background:var(--bg); font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text); outline:none; margin-bottom:20px; transition:border-color .2s; }
+.login-input:focus { border-color:var(--pink-dark); }
+.login-btn { width:100%; padding:12px; background:var(--text); color:white; border:none; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; transition:background .2s; }
+.login-btn:hover { background:var(--pink-text); }
+.login-error { color:var(--red); font-size:11px; margin-top:10px; display:none; text-align:center; }
+
+/* APP */
+#app { display:none; flex-direction:column; min-height:100vh; }
+
+/* TOPBAR */
+.topbar { background:white; border-bottom:1px solid var(--border); padding:0 28px; height:52px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+.topbar-brand { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; display:flex; align-items:baseline; gap:10px; }
+.topbar-brand span { font-family:'DM Sans',sans-serif; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); font-weight:400; }
+.topbar-right { display:flex; align-items:center; gap:16px; }
+.topbar-date { font-size:11px; color:var(--text-muted); }
+.topbar-logout { font-size:11px; color:var(--text-muted); background:none; border:1px solid var(--border); padding:5px 12px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; }
+.topbar-logout:hover { color:var(--text); border-color:var(--text-muted); }
+
+/* NAV */
+.nav { background:white; border-bottom:1px solid var(--border); padding:0 28px; display:flex; overflow-x:auto; gap:0; }
+.nav-tab { padding:12px 16px; font-size:11px; font-weight:500; letter-spacing:.07em; text-transform:uppercase; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all .2s; background:none; border-top:none; border-left:none; border-right:none; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; }
+.nav-tab:hover { color:var(--text); }
+.nav-tab.active { color:var(--pink-text); border-bottom-color:var(--pink-dark); }
+.nav-tab svg { width:14px; height:14px; flex-shrink:0; }
+
+/* CONTENT */
+.content { padding:24px 28px; flex:1; }
+.panel { display:none; }
+.panel.active { display:block; }
+
+/* TYPOGRAPHY */
+.section-title { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:300; color:var(--text); margin-bottom:3px; }
+.section-sub { font-size:11px; color:var(--text-muted); letter-spacing:.03em; margin-bottom:22px; }
+
+/* GRID */
+.grid { display:grid; gap:14px; }
+.grid-2 { grid-template-columns:1fr 1fr; }
+.grid-3 { grid-template-columns:1fr 1fr 1fr; }
+.grid-4 { grid-template-columns:repeat(4,1fr); }
+.span-2 { grid-column:span 2; }
+
+/* CARD */
+.card { background:white; border:1px solid var(--border); overflow:hidden; }
+.card-head { padding:13px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--bg); }
+.card-label { font-size:10px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); display:flex; align-items:center; gap:6px; }
+.card-body { padding:16px 18px; }
+
+/* STAT */
+.stat-block { background:white; border:1px solid var(--border); padding:18px 20px; }
+.stat-num { font-family:'Cormorant Garamond',serif; font-size:40px; font-weight:300; line-height:1; color:var(--text); margin-bottom:3px; }
+.stat-label { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); }
+.stat-sub { font-size:11px; color:var(--text-muted); margin-top:5px; }
+
+/* BADGE */
+.badge { display:inline-block; font-size:9px; font-weight:500; letter-spacing:.09em; text-transform:uppercase; padding:2px 7px; }
+.badge-lopa { background:var(--lopa-bg); color:var(--lopa); }
+.badge-laiya { background:var(--laiya-bg); color:var(--laiya); }
+.badge-project { background:var(--pink); color:var(--pink-text); }
+
+/* STATUS / TAG */
+.tag { display:inline-block; font-size:9px; letter-spacing:.07em; text-transform:uppercase; padding:2px 7px; font-weight:500; }
+.tag-high { background:var(--red-bg); color:var(--red); }
+.tag-med { background:var(--amber-bg); color:var(--amber); }
+.tag-low { background:var(--green-bg); color:var(--green); }
+.tag-done { background:var(--border); color:var(--text-muted); }
+
+/* PILL */
+.pill { display:inline-block; font-size:9px; letter-spacing:.07em; text-transform:uppercase; padding:3px 9px; font-weight:500; }
+.pill-red { background:var(--red-bg); color:var(--red); }
+.pill-amber { background:var(--amber-bg); color:var(--amber); }
+.pill-green { background:var(--green-bg); color:var(--green); }
+.pill-gray { background:var(--border); color:var(--text-muted); }
+.pill-pink { background:var(--pink); color:var(--pink-text); }
+.pill-purple { background:var(--lopa-bg); color:var(--lopa); }
+
+/* DOT */
+.dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; display:inline-block; }
+.dot-red { background:var(--red); }
+.dot-amber { background:var(--amber); }
+.dot-green { background:var(--green); }
+.dot-gray { background:var(--text-light); }
+.dot-pink { background:var(--pink-dark); }
+
+/* ROW */
+.data-row { display:flex; align-items:flex-start; gap:10px; padding:11px 0; border-bottom:1px solid var(--border); }
+.data-row:last-child { border-bottom:none; }
+.data-row-content { flex:1; min-width:0; }
+.data-row-title { font-size:13px; color:var(--text); margin-bottom:2px; }
+.data-row-meta { font-size:11px; color:var(--text-muted); display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+/* TABLE */
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th { font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); font-weight:500; text-align:left; padding:8px 12px; border-bottom:1px solid var(--border); background:var(--bg); white-space:nowrap; }
+.data-table td { padding:10px 12px; border-bottom:1px solid var(--border); font-size:12px; color:var(--text); vertical-align:middle; }
+.data-table tr:last-child td { border-bottom:none; }
+.data-table tr:hover td { background:var(--bg); }
+
+/* FORM */
+.form-group { margin-bottom:14px; }
+.form-label { display:block; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:5px; }
+.form-input,.form-select,.form-textarea { width:100%; padding:9px 12px; border:1px solid var(--border); background:var(--bg); font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text); outline:none; transition:border-color .2s; }
+.form-input:focus,.form-select:focus,.form-textarea:focus { border-color:var(--pink-dark); background:white; }
+.form-textarea { resize:vertical; min-height:80px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+
+/* BUTTONS */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:500; letter-spacing:.07em; text-transform:uppercase; cursor:pointer; border:none; transition:all .2s; }
+.btn-primary { background:var(--text); color:white; }
+.btn-primary:hover { background:var(--pink-text); }
+.btn-ghost { background:none; color:var(--text-muted); border:1px solid var(--border); }
+.btn-ghost:hover { color:var(--text); border-color:var(--text-muted); }
+.btn-pink { background:var(--pink); color:var(--pink-text); border:1px solid var(--pink-mid); }
+.btn-pink:hover { background:var(--pink-mid); }
+.btn-sm { padding:5px 11px; font-size:10px; }
+.btn-xs { padding:3px 8px; font-size:9px; }
+
+/* AI BTN */
+.ai-btn { display:inline-flex; align-items:center; gap:6px; background:var(--text); color:white; border:none; padding:8px 16px; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:500; letter-spacing:.07em; text-transform:uppercase; cursor:pointer; transition:background .2s; }
+.ai-btn:hover { background:var(--pink-text); }
+
+/* MODAL */
+.modal-overlay { position:fixed; inset:0; background:rgba(28,23,20,.45); z-index:500; display:none; align-items:center; justify-content:center; padding:16px; }
+.modal-overlay.open { display:flex; }
+.modal { background:white; width:580px; max-width:100%; max-height:90vh; overflow-y:auto; border:1px solid var(--border); }
+.modal-head { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:white; z-index:1; }
+.modal-title { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:300; }
+.modal-close { background:none; border:none; font-size:20px; color:var(--text-muted); cursor:pointer; padding:2px 8px; line-height:1; }
+.modal-body { padding:22px; }
+.modal-foot { padding:14px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; background:var(--bg); }
+
+/* QUICK CAPTURE */
+.capture-wrap { background:white; border:1px solid var(--pink-mid); padding:18px; margin-bottom:20px; position:relative; }
+.capture-label { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--pink-text); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.capture-input { width:100%; border:none; outline:none; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text); background:transparent; resize:none; min-height:48px; }
+.capture-input::placeholder { color:var(--text-light); }
+.capture-footer { display:flex; align-items:center; justify-content:space-between; margin-top:12px; border-top:1px solid var(--border); padding-top:12px; }
+.capture-hint { font-size:11px; color:var(--text-muted); }
+.capture-preview { background:var(--pink); border:1px solid var(--pink-mid); padding:16px 18px; margin-top:14px; display:none; }
+.capture-preview-title { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--pink-text); margin-bottom:10px; }
+.capture-item { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid var(--pink-mid); font-size:12px; }
+.capture-item:last-child { border-bottom:none; }
+.capture-item-type { font-size:9px; letter-spacing:.08em; text-transform:uppercase; font-weight:500; padding:2px 7px; flex-shrink:0; margin-top:1px; }
+.capture-item-text { flex:1; color:var(--text); }
+
+/* PROGRESS */
+.progress-wrap { background:var(--border); height:3px; width:100%; overflow:hidden; }
+.progress-fill { height:100%; background:var(--pink-dark); transition:width .4s ease; }
+.progress-fill.green { background:var(--green); }
+.progress-fill.amber { background:var(--amber); }
+
+/* PRIORITIES */
+.priority-item { display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+.priority-item:last-child { border-bottom:none; }
+.priority-num { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:300; color:var(--pink-mid); line-height:1; flex-shrink:0; width:24px; text-align:center; }
+.priority-text { flex:1; }
+.priority-title { font-size:13px; font-weight:400; color:var(--text); margin-bottom:2px; }
+.priority-desc { font-size:11px; color:var(--text-muted); }
+.pcheck { width:16px; height:16px; border:1.5px solid var(--border); cursor:pointer; flex-shrink:0; margin-top:3px; transition:all .2s; display:flex; align-items:center; justify-content:center; }
+.pcheck.checked { background:var(--pink); border-color:var(--pink-dark); }
+.pcheck.checked::after { content:'✓'; font-size:9px; color:var(--pink-text); }
+
+/* PUNCH LIST */
+.punch-room { margin-bottom:2px; }
+.punch-room-head { display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--bg); border:1px solid var(--border); cursor:pointer; user-select:none; }
+.punch-room-name { font-size:12px; font-weight:500; flex:1; }
+.punch-room-pct { font-size:11px; color:var(--text-muted); }
+.punch-items { border:1px solid var(--border); border-top:none; padding:6px 0; display:none; }
+.punch-items.open { display:block; }
+.punch-item { display:flex; align-items:center; gap:10px; padding:8px 14px; border-bottom:1px solid var(--border); }
+.punch-item:last-child { border-bottom:none; }
+.punch-check { width:15px; height:15px; border:1.5px solid var(--border); cursor:pointer; flex-shrink:0; transition:all .2s; display:flex; align-items:center; justify-content:center; }
+.punch-check.done { background:var(--green); border-color:var(--green); }
+.punch-check.done::after { content:'✓'; font-size:9px; color:white; }
+.punch-item-text { flex:1; font-size:12px; }
+.punch-item-text.done { text-decoration:line-through; color:var(--text-muted); }
+
+/* MILESTONE */
+.milestone-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--border); }
+.milestone-row:last-child { border-bottom:none; }
+.milestone-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.milestone-name { flex:1; font-size:13px; }
+.milestone-dates { display:flex; gap:16px; flex-shrink:0; }
+.milestone-date { font-size:11px; color:var(--text-muted); text-align:center; }
+.milestone-date span { display:block; font-size:9px; letter-spacing:.07em; text-transform:uppercase; margin-bottom:2px; color:var(--text-light); }
+
+/* RISK */
+.risk-row { display:flex; align-items:flex-start; gap:10px; padding:12px 0; border-bottom:1px solid var(--border); }
+.risk-row:last-child { border-bottom:none; }
+.risk-score { width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:400; flex-shrink:0; }
+.risk-score.high { background:var(--red-bg); color:var(--red); }
+.risk-score.med { background:var(--amber-bg); color:var(--amber); }
+.risk-score.low { background:var(--green-bg); color:var(--green); }
+.risk-content { flex:1; }
+.risk-title { font-size:13px; margin-bottom:3px; }
+.risk-mitigation { font-size:11px; color:var(--text-muted); }
+
+/* WEEK */
+.week-day { border:1px solid var(--border); background:white; }
+.week-day-head { background:var(--pink); padding:9px 14px; border-bottom:1px solid var(--pink-mid); }
+.week-day-name { font-size:10px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--pink-text); }
+.week-day-today { font-size:9px; color:var(--pink-dark); margin-top:1px; }
+.week-day-body { padding:10px 14px; }
+.time-block { display:flex; gap:8px; padding:5px 0; border-bottom:1px solid var(--border); font-size:12px; }
+.time-block:last-child { border-bottom:none; }
+.time-block-time { color:var(--text-muted); width:65px; flex-shrink:0; font-size:10px; padding-top:1px; }
+.time-block-task { color:var(--text); flex:1; }
+
+/* NOTIF */
+.notif { position:fixed; bottom:20px; right:20px; background:var(--text); color:white; padding:10px 18px; font-size:12px; z-index:999; transform:translateY(60px); opacity:0; transition:all .3s; max-width:280px; }
+.notif.show { transform:translateY(0); opacity:1; }
+
+/* EMPTY */
+.empty { text-align:center; padding:36px 16px; color:var(--text-muted); font-size:12px; }
+.empty-icon { font-size:24px; margin-bottom:8px; opacity:.35; }
+
+/* LOADING */
+.loading { display:inline-block; width:13px; height:13px; border:2px solid var(--pink-mid); border-top-color:var(--pink-dark); border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* HOUSE TABS */
+.house-tabs { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:14px; }
+.house-tab { padding:5px 13px; font-size:11px; font-weight:500; letter-spacing:.05em; cursor:pointer; border:1px solid var(--border); background:white; color:var(--text-muted); font-family:'DM Sans',sans-serif; transition:all .2s; }
+.house-tab:hover { color:var(--text); }
+.house-tab.active { background:var(--pink); border-color:var(--pink-mid); color:var(--pink-text); }
+
+/* INLINE SELECT */
+.inline-select { font-size:11px; border:1px solid var(--border); padding:3px 6px; background:var(--bg); font-family:'DM Sans',sans-serif; color:var(--text); cursor:pointer; outline:none; }
+
+/* DELETE BTN */
+.del-btn { background:none; border:none; color:var(--text-light); cursor:pointer; font-size:16px; padding:0 3px; line-height:1; transition:color .2s; }
+.del-btn:hover { color:var(--red); }
+
+/* SEVERITY BAR */
+.severity { display:flex; gap:3px; align-items:center; }
+.severity-block { width:14px; height:14px; }
+
+/* SETTINGS */
+.settings-section { margin-bottom:28px; }
+.settings-title { font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:6px; }
+.settings-item { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.settings-item:last-child { border-bottom:none; }
+.settings-item-main { flex:1; }
+.settings-item-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); }
+
+/* RESPONSIVE */
+@media(max-width:900px) { .grid-4{grid-template-columns:1fr 1fr;} .grid-3{grid-template-columns:1fr 1fr;} }
+@media(max-width:600px) { .content{padding:14px;} .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;} .span-2{grid-column:span 1;} .topbar,.nav{padding-left:14px;padding-right:14px;} .form-row,.form-row-3{grid-template-columns:1fr;} }
+
+/* DOODLE ICONS (single-color SVG) */
+.doodle { display:inline-block; vertical-align:middle; }
+</style>
+</head>
+<body>
+
+<!-- DOODLE SVG SYMBOLS -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bunny -->
+  <symbol id="ico-bunny" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="12" cy="15" rx="5" ry="6"/>
+    <ellipse cx="8.5" cy="7" rx="2" ry="4"/>
+    <ellipse cx="15.5" cy="7" rx="2" ry="4"/>
+    <circle cx="10.5" cy="15.5" r=".5" fill="currentColor"/>
+    <circle cx="13.5" cy="15.5" r=".5" fill="currentColor"/>
+    <path d="M11 17.5 q1 1 2 0"/>
+    <path d="M9 14 q-2 1-2 3"/>
+    <path d="M15 14 q2 1 2 3"/>
+  </symbol>
+  <!-- Flower -->
+  <symbol id="ico-flower" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="2.5"/>
+    <ellipse cx="12" cy="6.5" rx="1.8" ry="2.5"/>
+    <ellipse cx="12" cy="17.5" rx="1.8" ry="2.5"/>
+    <ellipse cx="6.5" cy="12" rx="2.5" ry="1.8"/>
+    <ellipse cx="17.5" cy="12" rx="2.5" ry="1.8"/>
+    <ellipse cx="8.2" cy="8.2" rx="1.8" ry="2.5" transform="rotate(-45 8.2 8.2)"/>
+    <ellipse cx="15.8" cy="15.8" rx="1.8" ry="2.5" transform="rotate(-45 15.8 15.8)"/>
+    <ellipse cx="15.8" cy="8.2" rx="1.8" ry="2.5" transform="rotate(45 15.8 8.2)"/>
+    <ellipse cx="8.2" cy="15.8" rx="1.8" ry="2.5" transform="rotate(45 8.2 15.8)"/>
+  </symbol>
+  <!-- Heart -->
+  <symbol id="ico-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 20 C12 20 4 14 4 8.5 A4 4 0 0 1 12 7 A4 4 0 0 1 20 8.5 C20 14 12 20 12 20Z"/>
+  </symbol>
+  <!-- House -->
+  <symbol id="ico-house" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 11L12 4l9 7"/>
+    <path d="M5 9.5V20h14V9.5"/>
+    <rect x="9" y="14" width="6" height="6"/>
+  </symbol>
+  <!-- Star -->
+  <symbol id="ico-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3l2.5 6h6.5l-5 4 2 6.5L12 16l-6 3.5 2-6.5-5-4h6.5z"/>
+  </symbol>
+  <!-- Leaf -->
+  <symbol id="ico-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 21 C12 21 5 17 5 10 C5 6 8 3 12 3 C16 3 19 6 19 10 C19 17 12 21 12 21Z"/>
+    <line x1="12" y1="21" x2="12" y2="10"/>
+    <line x1="12" y1="13" x2="16" y2="9"/>
+    <line x1="12" y1="16" x2="8" y2="12"/>
+  </symbol>
+  <!-- Cloud -->
+  <symbol id="ico-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 17H7a4 4 0 01-.5-8 5 5 0 019.9-1A3.5 3.5 0 0118 17z"/>
+  </symbol>
+  <!-- Sun -->
+  <symbol id="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/>
+    <line x1="12" y1="3" x2="12" y2="5"/>
+    <line x1="12" y1="19" x2="12" y2="21"/>
+    <line x1="3" y1="12" x2="5" y2="12"/>
+    <line x1="19" y1="12" x2="21" y2="12"/>
+    <line x1="5.6" y1="5.6" x2="7" y2="7"/>
+    <line x1="17" y1="17" x2="18.4" y2="18.4"/>
+    <line x1="18.4" y1="5.6" x2="17" y2="7"/>
+    <line x1="7" y1="17" x2="5.6" y2="18.4"/>
+  </symbol>
+  <!-- Moon -->
+  <symbol id="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>
+  </symbol>
+  <!-- Sparkle -->
+  <symbol id="ico-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+    <path d="M12 8 L13.5 12 L12 16 L10.5 12 Z"/>
+    <path d="M8 12 L12 13.5 L16 12 L12 10.5 Z"/>
+  </symbol>
+</svg>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+      <svg width="22" height="22" style="color:var(--pink-dark)" class="doodle"><use href="#ico-bunny"/></svg>
+      <div class="login-brand">Faye</div>
+    </div>
+    <div class="login-sub">Foro Consulting — Project Command</div>
+    <label class="login-label">Password</label>
+    <input type="password" class="login-input" id="pw-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Enter Dashboard</button>
+    <div class="login-error" id="login-error">Incorrect password.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <svg width="16" height="16" style="color:var(--pink-dark)" class="doodle"><use href="#ico-bunny"/></svg>
+      Faye <span>Project Command</span>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-date" id="topbar-date"></div>
+      <button class="topbar-logout" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-tab active" onclick="showPanel('overview',this)">
+      <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-sparkle"/></svg> Overview
+    </button>
+    <button class="nav-tab" onclick="showPanel('issues',this)">
+      <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-cloud"/></svg> Issues
+    </button>
+    <button class="nav-tab" onclick="showPanel('osm',this)">
+      <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-leaf"/></svg> OSM
+    </button>
+    <button class="nav-tab" onclick="showPanel('billing',this)">
+      <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-moon"/></svg> Billing
+    </button>
+    <button class="nav-tab" onclick="showPanel('coordination',this)">
+      <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-flower"/></svg> Coordination
+    </button>
+    <button class="nav-tab" onclick="showPanel('punchlist',this)">
+      <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-house"/></svg> Punch List
+    </button>
+    <button class="nav-tab" onclick="showPanel('milestones',this)">
+      <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-star"/></svg> Milestones
+    </button>
+    <button class="nav-tab" onclick="showPanel('risks',this)">
+      <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-sun"/></svg> Risks
+    </button>
+    <button class="nav-tab" onclick="showPanel('ownerlog',this)">
+      <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-heart"/></svg> Owner Log
+    </button>
+    <button class="nav-tab" onclick="showPanel('week',this)">
+      <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-bunny"/></svg> My Week
+    </button>
+    <button class="nav-tab" onclick="showPanel('ai',this)">✦ AI Assist</button>
+    <button class="nav-tab" onclick="showPanel('settings',this)">Settings</button>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ OVERVIEW ══ -->
+    <div class="panel active" id="panel-overview">
+      <div class="section-title">Good morning, Faye.</div>
+      <div class="section-sub" id="overview-sub"></div>
+
+      <!-- QUICK CAPTURE -->
+      <div class="capture-wrap">
+        <div class="capture-label">
+          <svg width="13" height="13" style="color:var(--pink-dark)"><use href="#ico-sparkle"/></svg>
+          Quick Capture — type anything
+        </div>
+        <textarea class="capture-input" id="capture-input" placeholder="e.g. h3 waterproof not done khimme check friday owner asking… or owner h5 confirmed tiles beige color…"></textarea>
+        <div class="capture-footer">
+          <div class="capture-hint">AI will clean it up and file it to the right tab automatically.</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="clearCapture()">Clear</button>
+            <button class="ai-btn btn-sm" onclick="runCapture()" id="capture-btn">✦ Parse &amp; File</button>
+          </div>
+        </div>
+        <div class="capture-preview" id="capture-preview">
+          <div class="capture-preview-title">Review before saving — edit if needed:</div>
+          <div id="capture-items"></div>
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <button class="btn btn-primary btn-sm" onclick="confirmCapture()">Confirm &amp; Save All</button>
+            <button class="btn btn-ghost btn-sm" onclick="dismissCapture()">Dismiss</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-4" style="margin-bottom:16px;">
+        <div class="stat-block">
+          <div class="stat-num" id="st-issues">—</div>
+          <div class="stat-label">Open Issues</div>
+          <div class="stat-sub">Across all projects</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num" id="st-osm">—</div>
+          <div class="stat-label">OSM Not Ordered</div>
+          <div class="stat-sub">Needs action</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num" id="st-risks">—</div>
+          <div class="stat-label">High Risks</div>
+          <div class="stat-sub" id="st-risks-sub">Monitor closely</div>
+        </div>
+        <div class="stat-block" style="background:var(--pink);border-color:var(--pink-mid);">
+          <div class="stat-num" id="st-days" style="color:var(--pink-text);">—</div>
+          <div class="stat-label" style="color:var(--pink-dark);">Days to LOPA</div>
+          <div class="stat-sub" style="color:var(--pink-dark);" id="st-lopa-project">August target</div>
+        </div>
+      </div>
+
+      <!-- CARDS ROW -->
+      <div class="grid grid-2" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-label"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-cloud"/></svg> Critical Issues</span>
+            <button class="btn btn-ghost btn-xs" onclick="showPanel('issues',null)">View all</button>
+          </div>
+          <div class="card-body" id="ov-issues"><div class="empty"><div class="empty-icon">✓</div>No critical issues.</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-label"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-sun"/></svg> High Risks</span>
+            <button class="btn btn-ghost btn-xs" onclick="showPanel('risks',null)">View all</button>
+          </div>
+          <div class="card-body" id="ov-risks"><div class="empty"><div class="empty-icon">✓</div>No high risks logged.</div></div>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-label"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-leaf"/></svg> OSM — Not Ordered</span>
+            <button class="btn btn-ghost btn-xs" onclick="showPanel('osm',null)">View all</button>
+          </div>
+          <div class="card-body" id="ov-osm"><div class="empty"><div class="empty-icon">📦</div>All items in progress.</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-label"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-star"/></svg> This Week's Priorities</span>
+            <button class="btn btn-ghost btn-xs" onclick="showPanel('week',null)">Edit</button>
+          </div>
+          <div class="card-body" id="ov-priorities"><div class="empty"><div class="empty-icon">📋</div>Set priorities in My Week.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ISSUES ══ -->
+    <div class="panel" id="panel-issues">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div><div class="section-title">Issues</div><div class="section-sub">Site problems across all projects</div></div>
+        <button class="btn btn-primary" onclick="openModal('m-issue')">+ Log Issue</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <select class="form-select" style="width:auto;" id="fi-proj" onchange="renderIssues()">
+          <option value="">All Projects</option>
+        </select>
+        <select class="form-select" style="width:auto;" id="fi-stat" onchange="renderIssues()">
+          <option value="">All Status</option>
+          <option>Open</option><option>In Progress</option><option>Resolved</option>
+        </select>
+        <select class="form-select" style="width:auto;" id="fi-pri" onchange="renderIssues()">
+          <option value="">All Priority</option>
+          <option>High</option><option>Medium</option><option>Low</option>
+        </select>
+      </div>
+      <div class="card"><div class="card-body" id="issues-list"></div></div>
+    </div>
+
+    <!-- ══ OSM ══ -->
+    <div class="panel" id="panel-osm">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div><div class="section-title">OSM Tracker</div><div class="section-sub">Owner-supplied materials per house</div></div>
+        <button class="btn btn-primary" onclick="openModal('m-osm')">+ Add Item</button>
+      </div>
+      <div class="house-tabs" id="osm-house-tabs"></div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>Item</th><th>Category</th><th>House</th><th>Owner / Supplier</th><th>Status</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="osm-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ BILLING ══ -->
+    <div class="panel" id="panel-billing">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div><div class="section-title">Billing</div><div class="section-sub">Progress billing tracker</div></div>
+        <button class="btn btn-primary" onclick="openModal('m-billing')">+ Add Billing</button>
+      </div>
+      <div class="card">
+        <table class="data-table">
+          <thead><tr><th>Contractor</th><th>Project</th><th>Description</th><th>Amount (₱)</th><th>Date Submitted</th><th>Endorse By</th><th>Status</th><th></th></tr></thead>
+          <tbody id="billing-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ COORDINATION ══ -->
+    <div class="panel" id="panel-coordination">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div><div class="section-title">Coordination</div><div class="section-sub">Follow-ups, action items, and coordination log</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick="openModal('m-followup')">+ Follow-up</button>
+          <button class="btn btn-ghost" onclick="openModal('m-action')">+ Action Item</button>
+          <button class="btn btn-primary" onclick="openModal('m-log')">+ Log Entry</button>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px;">
+        <!-- FOLLOW UPS -->
+        <div class="card">
+          <div class="card-head"><span class="card-label"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-flower"/></svg> Follow-ups</span></div>
+          <div class="card-body" id="followup-list"><div class="empty"><div class="empty-icon">✓</div>No pending follow-ups.</div></div>
+        </div>
+        <!-- ACTION ITEMS -->
+        <div class="card">
+          <div class="card-head"><span class="card-label"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-star"/></svg> Action Items</span></div>
+          <div class="card-body" id="action-list"><div class="empty"><div class="empty-icon">✓</div>No open action items.</div></div>
+        </div>
+      </div>
+
+      <!-- LOG -->
+      <div class="card">
+        <div class="card-head"><span class="card-label"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-leaf"/></svg> Coordination Log</span></div>
+        <div class="card-body" id="coord-log"><div class="empty"><div class="empty-icon">📝</div>No log entries yet.</div></div>
+      </div>
+    </div>
+
+    <!-- ══ PUNCH LIST ══ -->
+    <div class="panel" id="panel-punchlist">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div><div class="section-title">Punch List</div><div class="section-sub">Per house completion checklist</div></div>
+        <button class="btn btn-primary" onclick="openModal('m-punch')">+ Add Item</button>
+      </div>
+      <div class="house-tabs" id="punch-house-tabs"></div>
+      <div id="punch-content"></div>
+    </div>
+
+    <!-- ══ MILESTONES ══ -->
+    <div class="panel" id="panel-milestones">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div><div class="section-title">Milestones</div><div class="section-sub">Key dates per project — target vs actual</div></div>
+        <button class="btn btn-primary" onclick="openModal('m-milestone')">+ Add Milestone</button>
+      </div>
+      <div id="milestones-content"></div>
+    </div>
+
+    <!-- ══ RISKS ══ -->
+    <div class="panel" id="panel-risks">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div><div class="section-title">Risk Register</div><div class="section-sub">What might go wrong — flag it before it does</div></div>
+        <button class="btn btn-primary" onclick="openModal('m-risk')">+ Add Risk</button>
+      </div>
+      <div class="card"><div class="card-body" id="risks-list"></div></div>
+    </div>
+
+    <!-- ══ OWNER LOG ══ -->
+    <div class="panel" id="panel-ownerlog">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <div><div class="section-title">Owner Log</div><div class="section-sub">Every owner communication on record</div></div>
+        <button class="btn btn-primary" onclick="openModal('m-ownerlog')">+ Log Communication</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <select class="form-select" style="width:auto;" id="fol-proj" onchange="renderOwnerLog()">
+          <option value="">All Projects</option>
+        </select>
+        <select class="form-select" style="width:auto;" id="fol-house" onchange="renderOwnerLog()">
+          <option value="">All Houses</option>
+        </select>
+      </div>
+      <div class="card"><div class="card-body" id="ownerlog-list"></div></div>
+    </div>
+
+    <!-- ══ MY WEEK ══ -->
+    <div class="panel" id="panel-week">
+      <div class="section-title">My Week</div>
+      <div class="section-sub">Your time blocks and priorities</div>
+      <div class="grid grid-2" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-label"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-heart"/></svg> Top 5 This Week</span>
+            <button class="btn btn-pink btn-xs" onclick="aiSuggestPriorities()">✦ AI Suggest</button>
+          </div>
+          <div class="card-body">
+            <div id="priorities-list"></div>
+            <div style="display:flex;gap:8px;margin-top:14px;">
+              <input type="text" class="form-input" id="new-priority" placeholder="Add a priority..." style="flex:1;" onkeydown="if(event.key==='Enter')addPriority()">
+              <button class="btn btn-ghost" onclick="addPriority()">Add</button>
+            </div>
+            <div id="ai-prio-response" style="display:none;background:var(--pink);border:1px solid var(--pink-mid);padding:14px;margin-top:12px;font-size:12px;"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-label"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-sun"/></svg> Today's Blocks</span></div>
+          <div class="card-body" id="today-sched"></div>
+        </div>
+      </div>
+      <div class="card-label" style="margin-bottom:10px;">Full Week</div>
+      <div class="grid grid-3" id="week-grid"></div>
+    </div>
+
+    <!-- ══ AI ASSIST ══ -->
+    <div class="panel" id="panel-ai">
+      <div class="section-title">AI Assist</div>
+      <div class="section-sub">Ask anything — reads your live project data</div>
+      <div class="grid grid-2">
+        <div>
+          <div class="card" style="margin-bottom:14px;">
+            <div class="card-head"><span class="card-label">Quick Actions</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:6px;">
+              <button class="btn btn-ghost" style="justify-content:flex-start;text-transform:none;letter-spacing:0;font-size:12px;" onclick="runAI('What should I focus on today based on my issues, risks, and OSM status?')">✦ What to focus on today?</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;text-transform:none;letter-spacing:0;font-size:12px;" onclick="runAI('Which OSM items are most at risk of delaying the August completion? List by house.')">✦ OSM at risk for August?</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;text-transform:none;letter-spacing:0;font-size:12px;" onclick="runAI('Summarize open issues by project and priority. What needs immediate action?')">✦ Summarize open issues</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;text-transform:none;letter-spacing:0;font-size:12px;" onclick="runAI('Which risks are most likely to blow up this month? What should I do about them?')">✦ Which risks need attention now?</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;text-transform:none;letter-spacing:0;font-size:12px;" onclick="runAI('Am I on track for August? Based on milestones and open items, what is my real status?')">✦ Am I on track for August?</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;text-transform:none;letter-spacing:0;font-size:12px;" onclick="runAI('I have too much on my plate. Help me triage what is truly critical across all projects this week.')">✦ Help me triage everything</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-label">Ask Anything</span></div>
+            <div class="card-body">
+              <textarea class="form-textarea" id="ai-input" placeholder="Type your question..." style="min-height:90px;margin-bottom:10px;"></textarea>
+              <button class="ai-btn" onclick="runCustomAI()">✦ Ask AI</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="min-height:380px;">
+          <div class="card-head">
+            <span class="card-label">Response</span>
+            <div id="ai-loading" style="display:none;"><div class="loading"></div></div>
+          </div>
+          <div class="card-body">
+            <div id="ai-response" style="font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;">
+              <div class="empty" style="padding:50px 0;"><div class="empty-icon">✦</div>Select a quick action or ask a question.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS ══ -->
+    <div class="panel" id="panel-settings">
+      <div class="section-title">Settings</div>
+      <div class="section-sub">Manage projects, units, contractors, and contacts</div>
+
+      <div class="grid grid-2">
+        <!-- PROJECTS -->
+        <div>
+          <div class="settings-section">
+            <div class="settings-title"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-house"/></svg> Projects &amp; Units</div>
+            <div id="projects-list"></div>
+            <div style="margin-top:12px;display:flex;gap:8px;">
+              <input type="text" class="form-input" id="new-project-name" placeholder="Project name" style="flex:1;">
+              <button class="btn btn-ghost" onclick="addProject()">Add</button>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-title"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-flower"/></svg> Contractors &amp; Suppliers</div>
+            <div id="contractors-list"></div>
+            <div style="margin-top:12px;">
+              <div class="form-row" style="margin-bottom:8px;">
+                <input type="text" class="form-input" id="new-con-name" placeholder="Name">
+                <input type="text" class="form-input" id="new-con-role" placeholder="Role (e.g. Gen Con, Steel)">
+              </div>
+              <select class="form-select" id="new-con-proj" style="margin-bottom:8px;"></select>
+              <button class="btn btn-ghost" onclick="addContractor()">Add Contractor</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTACTS -->
+        <div>
+          <div class="settings-section">
+            <div class="settings-title"><svg width="12" height="12" style="color:var(--pink-dark)"><use href="#ico-heart"/></svg> Contacts (Owners, Designers, Engineers)</div>
+            <div id="contacts-list"></div>
+            <div style="margin-top:12px;">
+              <div class="form-row" style="margin-bottom:8px;">
+                <input type="text" class="form-input" id="new-contact-name" placeholder="Name">
+                <input type="text" class="form-input" id="new-contact-role" placeholder="Role (e.g. Owner H3, Designer)">
+              </div>
+              <select class="form-select" id="new-contact-proj" style="margin-bottom:8px;"></select>
+              <button class="btn btn-ghost" onclick="addContact()">Add Contact</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- ISSUE -->
+<div class="modal-overlay" id="m-issue">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Log Issue</div><button class="modal-close" onclick="closeModal('m-issue')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="i-proj"></select></div>
+        <div class="form-group"><label class="form-label">House / Area</label><select class="form-select" id="i-house"></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Issue Title</label><input type="text" class="form-input" id="i-title" placeholder="Describe the issue clearly"></div>
+      <div class="form-group"><label class="form-label">Details</label><textarea class="form-textarea" id="i-desc" placeholder="What happened, what needs to be done..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="form-select" id="i-cat">
+            <option>Waterproofing</option><option>Electrical</option><option>Plumbing</option><option>Structural</option>
+            <option>Finishing</option><option>OSM / Materials</option><option>Design / Plans</option>
+            <option>Contractor</option><option>Schedule</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Priority</label>
+          <select class="form-select" id="i-pri"><option value="High">High</option><option value="Medium" selected>Medium</option><option value="Low">Low</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Assigned To</label><input type="text" class="form-input" id="i-assigned" placeholder="Person responsible"></div>
+        <div class="form-group"><label class="form-label">Target Date</label><input type="date" class="form-input" id="i-date"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-issue')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIssue()">Save Issue</button>
+    </div>
+  </div>
+</div>
+
+<!-- OSM -->
+<div class="modal-overlay" id="m-osm">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Add OSM Item</div><button class="modal-close" onclick="closeModal('m-osm')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">House / Unit</label><select class="form-select" id="o-house"></select></div>
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="form-select" id="o-cat">
+            <option>Doors & Windows</option><option>Tiles & Flooring</option><option>Kitchen</option>
+            <option>Cabinets & Vanities</option><option>Appliances</option><option>Lighting & Fans</option>
+            <option>Electrical</option><option>Plumbing Fixtures</option><option>Hardware & Accessories</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Item Name</label><input type="text" class="form-input" id="o-item" placeholder="e.g. Main entry door — solid wood 0.9m x 2.1m"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Owner / Supplier</label><input type="text" class="form-input" id="o-owner" placeholder="Who is supplying this?"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="o-status"><option>Not Ordered</option><option>For Approval</option><option>Ordered</option><option>Delivered</option><option>Installed</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="o-notes" placeholder="e.g. Owner to confirm color by Friday" style="min-height:60px;"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-osm')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOSM()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- BILLING -->
+<div class="modal-overlay" id="m-billing">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Add Billing</div><button class="modal-close" onclick="closeModal('m-billing')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="b-proj"></select></div>
+        <div class="form-group"><label class="form-label">Contractor</label><select class="form-select" id="b-con"></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><input type="text" class="form-input" id="b-desc" placeholder="e.g. Progress billing #3 — roofing works"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Amount (₱)</label><input type="number" class="form-input" id="b-amount" placeholder="0.00"></div>
+        <div class="form-group"><label class="form-label">Date Submitted</label><input type="date" class="form-input" id="b-submitted"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Endorse By (Deadline)</label><input type="date" class="form-input" id="b-endorse"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="b-status"><option>Submitted</option><option>For Review</option><option>Reviewed</option><option>Endorsed</option><option>For Payment</option><option>Paid</option><option>Disputed</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="b-notes" placeholder="Any flags or conditions..." style="min-height:60px;"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-billing')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBilling()">Save Billing</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOLLOW UP -->
+<div class="modal-overlay" id="m-followup">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Add Follow-up</div><button class="modal-close" onclick="closeModal('m-followup')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="fu-proj"></select></div>
+        <div class="form-group"><label class="form-label">Person</label><input type="text" class="form-input" id="fu-person" placeholder="Who to follow up with"></div>
+      </div>
+      <div class="form-group"><label class="form-label">What to Follow Up On</label><input type="text" class="form-input" id="fu-what" placeholder="e.g. Confirm tile delivery date"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Follow Up By</label><input type="date" class="form-input" id="fu-date"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="fu-status"><option>Pending</option><option>Done</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-followup')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveFollowup()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACTION ITEM -->
+<div class="modal-overlay" id="m-action">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Add Action Item</div><button class="modal-close" onclick="closeModal('m-action')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="ai-proj"></select></div>
+        <div class="form-group"><label class="form-label">Assigned To</label><input type="text" class="form-input" id="ai-person" placeholder="Who is responsible"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Action</label><input type="text" class="form-input" id="ai-what" placeholder="e.g. Submit revised structural plan"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Due Date</label><input type="date" class="form-input" id="ai-date"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="ai-status"><option>Open</option><option>In Progress</option><option>Done</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-action')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAction()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG ENTRY -->
+<div class="modal-overlay" id="m-log">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Log Coordination Entry</div><button class="modal-close" onclick="closeModal('m-log')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="cl-proj"></select></div>
+        <div class="form-group"><label class="form-label">With / About</label><input type="text" class="form-input" id="cl-with" placeholder="e.g. Engr. Khimme, Owner H3"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="cl-date"></div>
+      <div class="form-group"><label class="form-label">What Was Discussed</label><textarea class="form-textarea" id="cl-discussed" placeholder="What was talked about..."></textarea></div>
+      <div class="form-group"><label class="form-label">What Was Decided / Agreed</label><textarea class="form-textarea" id="cl-decided" placeholder="What was decided, agreed, or committed to..."></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-log')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLog()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- PUNCH ITEM -->
+<div class="modal-overlay" id="m-punch">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Add Punch List Item</div><button class="modal-close" onclick="closeModal('m-punch')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">House / Unit</label><select class="form-select" id="pl-house"></select></div>
+        <div class="form-group"><label class="form-label">Room / Area</label><input type="text" class="form-input" id="pl-room" placeholder="e.g. Master Bedroom, CR1, Living Area"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Item to Check</label><input type="text" class="form-input" id="pl-item" placeholder="e.g. Paint finish — no drips or uneven areas"></div>
+      <div class="form-group"><label class="form-label">Trade / Category</label>
+        <select class="form-select" id="pl-trade">
+          <option>Paint</option><option>Tiles</option><option>Doors & Windows</option><option>Electrical</option>
+          <option>Plumbing</option><option>Carpentry</option><option>Waterproofing</option><option>Cleaning</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-punch')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePunch()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- MILESTONE -->
+<div class="modal-overlay" id="m-milestone">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Add Milestone</div><button class="modal-close" onclick="closeModal('m-milestone')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="ms-proj"></select></div>
+      <div class="form-group"><label class="form-label">Milestone Name</label><input type="text" class="form-input" id="ms-name" placeholder="e.g. Rough finishing complete"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Target Date</label><input type="date" class="form-input" id="ms-target"></div>
+        <div class="form-group"><label class="form-label">Actual Date (if done)</label><input type="date" class="form-input" id="ms-actual"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select class="form-select" id="ms-status"><option>Not Started</option><option>In Progress</option><option>Completed</option><option>Delayed</option></select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-milestone')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMilestone()">Save Milestone</button>
+    </div>
+  </div>
+</div>
+
+<!-- RISK -->
+<div class="modal-overlay" id="m-risk">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Add Risk</div><button class="modal-close" onclick="closeModal('m-risk')">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="ri-proj"></select></div>
+      <div class="form-group"><label class="form-label">Risk Description</label><input type="text" class="form-input" id="ri-desc" placeholder="e.g. Tile supplier may not deliver on time"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Likelihood (1–5)</label>
+          <select class="form-select" id="ri-like"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Impact (1–5)</label>
+          <select class="form-select" id="ri-impact"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Mitigation Plan</label><textarea class="form-textarea" id="ri-mit" placeholder="What will you do if this happens?" style="min-height:60px;"></textarea></div>
+      <div class="form-group"><label class="form-label">Owner (Who monitors this)</label><input type="text" class="form-input" id="ri-owner" placeholder="e.g. Angeli, Engr. Khimme"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-risk')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRisk()">Save Risk</button>
+    </div>
+  </div>
+</div>
+
+<!-- OWNER LOG -->
+<div class="modal-overlay" id="m-ownerlog">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Log Owner Communication</div><button class="modal-close" onclick="closeModal('m-ownerlog')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="ol-proj" onchange="populateOLHouse()"></select></div>
+        <div class="form-group"><label class="form-label">House / Unit</label><select class="form-select" id="ol-house"></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Owner Name</label><input type="text" class="form-input" id="ol-owner" placeholder="e.g. Mr. & Mrs. Lim"></div>
+        <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="ol-date"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Channel</label>
+        <select class="form-select" id="ol-channel"><option>WhatsApp</option><option>Call</option><option>Email</option><option>Site Visit</option><option>Meeting</option><option>Other</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">What You Told Them</label><textarea class="form-textarea" id="ol-told" placeholder="What update did you give?"></textarea></div>
+      <div class="form-group"><label class="form-label">Their Response / Action</label><textarea class="form-textarea" id="ol-response" placeholder="What did they say or agree to?" style="min-height:60px;"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-ownerlog')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOwnerLog()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIF -->
+<div class="notif" id="notif"></div>
+
+<script>
+// ══════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════
+const PW = 'foro2025';
+
+function doLogin() {
+  if (document.getElementById('pw-input').value === PW) {
+    document.getElementById('login-screen').style.display = 'none';
+    const app = document.getElementById('app');
+    app.style.display = 'flex';
+    app.style.flexDirection = 'column';
+    initApp();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+  }
+}
+
+function doLogout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('pw-input').value = '';
+}
+
+// ══════════════════════════════════════
+// DATA
+// ══════════════════════════════════════
+let D = {
+  projects: [
+    { id:'lopa', name:'LOPA', units:['H2','H3','H4','H5','H6','H7','H8'], color:'lopa', target:'2025-08-31' },
+    { id:'laiya', name:'Laiya Beach House', units:['Laiya Site'], color:'laiya', target:'' }
+  ],
+  contractors: [
+    { id:1, name:"JARK's Team", role:'General Contractor', project:'lopa' },
+    { id:2, name:'KS Steel', role:'Steel Works', project:'lopa' },
+    { id:3, name:'Halina', role:'Subcontractor', project:'lopa' },
+    { id:4, name:'ALPA Exponential Builders', role:'General Contractor', project:'laiya' }
+  ],
+  contacts: [
+    { id:1, name:'Ar. Mary Faye', role:'Designer — LOPA', project:'lopa' },
+    { id:2, name:'Engr. Khimme Caponpon', role:'Site Engineer', project:'laiya' },
+    { id:3, name:'Jon Uel Cañete', role:'Lead Designer', project:'laiya' }
+  ],
+  issues: [],
+  osm: [],
+  billing: [],
+  followups: [],
+  actions: [],
+  coordlogs: [],
+  punchlist: [],
+  milestones: [],
+  risks: [],
+  ownerlog: [],
+  priorities: []
+};
+
+const DEFAULT_MILESTONES = {
+  lopa: [
+    { name:'Rough finishing complete — all units', status:'In Progress', target:'2025-05-15', actual:'' },
+    { name:'Painting complete — all units', status:'Not Started', target:'2025-06-15', actual:'' },
+    { name:'All OSM delivered and installed', status:'Not Started', target:'2025-07-01', actual:'' },
+    { name:'Punch list complete — all units', status:'Not Started', target:'2025-07-20', actual:'' },
+    { name:'Final cleaning and snagging', status:'Not Started', target:'2025-08-10', actual:'' },
+    { name:'Turnover — all 7 units', status:'Not Started', target:'2025-08-31', actual:'' }
+  ],
+  laiya: [
+    { name:'Structural works complete', status:'In Progress', target:'', actual:'' },
+    { name:'Roofing complete', status:'Not Started', target:'', actual:'' },
+    { name:'MEP rough-in complete', status:'Not Started', target:'', actual:'' },
+    { name:'Finishing works begin', status:'Not Started', target:'', actual:'' },
+    { name:'Turnover', status:'Not Started', target:'', actual:'' }
+  ]
+};
+
+function save() { try { localStorage.setItem('faye2_data', JSON.stringify(D)); } catch(e) {} }
+
+function load() {
+  try {
+    const s = localStorage.getItem('faye2_data');
+    if (s) D = { ...D, ...JSON.parse(s) };
+    else {
+      // Pre-load milestones
+      D.projects.forEach(p => {
+        const ms = DEFAULT_MILESTONES[p.id] || [];
+        ms.forEach(m => D.milestones.push({ id: Date.now() + Math.random(), project: p.id, ...m }));
+      });
+      save();
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+function initApp() {
+  load();
+  setDate();
+  populateAllDropdowns();
+  renderAll();
+  renderWeek();
+  renderPriorities();
+  renderSettings();
+}
+
+function setDate() {
+  const d = new Date();
+  const s = d.toLocaleDateString('en-PH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('topbar-date').textContent = s;
+  document.getElementById('overview-sub').textContent = s + ' — here\'s your project snapshot.';
+}
+
+// ══════════════════════════════════════
+// PANELS
+// ══════════════════════════════════════
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  renderAll();
+}
+
+// ══════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════
+function openModal(id) {
+  populateModalDropdowns(id);
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open'); });
+
+// ══════════════════════════════════════
+// NOTIFY
+// ══════════════════════════════════════
+function notify(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════
+// DROPDOWNS
+// ══════════════════════════════════════
+function projectOptions(val) {
+  return D.projects.map(p => `<option value="${p.id}" ${val===p.id?'selected':''}>${p.name}</option>`).join('');
+}
+
+function allUnitsOptions(projId) {
+  const proj = D.projects.find(p => p.id === projId);
+  if (!proj) return D.projects.flatMap(p => p.units).map(u => `<option>${u}</option>`).join('');
+  return proj.units.map(u => `<option>${u}</option>`).join('');
+}
+
+function contractorOptions(projId) {
+  const cons = projId ? D.contractors.filter(c => c.project === projId) : D.contractors;
+  return cons.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function populateSelect(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
+function populateAllDropdowns() {
+  // Filter dropdowns
+  populateSelect('fi-proj', '<option value="">All Projects</option>' + D.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join(''));
+  populateSelect('fol-proj', '<option value="">All Projects</option>' + D.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join(''));
+  populateSelect('fol-house', '<option value="">All Houses</option>' + D.projects.flatMap(p => p.units).map(u => `<option>${u}</option>`).join(''));
+  populateSelect('new-con-proj', projectOptions(''));
+  populateSelect('new-contact-proj', projectOptions(''));
+
+  // House tabs for OSM and Punch
+  renderHouseTabs('osm-house-tabs', 'osm');
+  renderHouseTabs('punch-house-tabs', 'punch');
+}
+
+function populateModalDropdowns(id) {
+  const projOpts = projectOptions('');
+  const allUnits = D.projects.flatMap(p => p.units).map(u => `<option>${u}</option>`).join('');
+  const conOpts = contractorOptions('');
+
+  if (id === 'm-issue') {
+    populateSelect('i-proj', projOpts);
+    populateSelect('i-house', allUnits);
+    document.getElementById('i-proj').onchange = function() {
+      populateSelect('i-house', allUnitsOptions(this.value));
+    };
+  }
+  if (id === 'm-osm') populateSelect('o-house', allUnits);
+  if (id === 'm-billing') {
+    populateSelect('b-proj', projOpts);
+    populateSelect('b-con', conOpts);
+    document.getElementById('b-proj').onchange = function() {
+      populateSelect('b-con', contractorOptions(this.value));
+    };
+  }
+  if (id === 'm-followup') populateSelect('fu-proj', projOpts);
+  if (id === 'm-action') populateSelect('ai-proj', projOpts);
+  if (id === 'm-log') populateSelect('cl-proj', projOpts);
+  if (id === 'm-punch') populateSelect('pl-house', allUnits);
+  if (id === 'm-milestone') populateSelect('ms-proj', projOpts);
+  if (id === 'm-risk') populateSelect('ri-proj', projOpts);
+  if (id === 'm-ownerlog') {
+    populateSelect('ol-proj', projOpts);
+    populateSelect('ol-house', allUnits);
+    document.getElementById('ol-proj').onchange = function() {
+      populateSelect('ol-house', allUnitsOptions(this.value));
+    };
+    document.getElementById('ol-date').value = new Date().toISOString().split('T')[0];
+  }
+}
+
+function populateOLHouse() {
+  const proj = document.getElementById('ol-proj').value;
+  populateSelect('ol-house', allUnitsOptions(proj));
+}
+
+// ══════════════════════════════════════
+// HOUSE TABS
+// ══════════════════════════════════════
+let osmHouseFilter = 'all';
+let punchHouseFilter = 'all';
+
+function renderHouseTabs(containerId, type) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const filter = type === 'osm' ? osmHouseFilter : punchHouseFilter;
+  let html = `<div class="house-tab ${filter==='all'?'active':''}" onclick="setHouseFilter('${type}','all',this)">All</div>`;
+  D.projects.forEach(p => {
+    p.units.forEach(u => {
+      html += `<div class="house-tab ${filter===u?'active':''}" onclick="setHouseFilter('${type}','${u}',this)">${u}</div>`;
+    });
+  });
+  el.innerHTML = html;
+}
+
+function setHouseFilter(type, val, el) {
+  document.querySelectorAll('#' + (type==='osm'?'osm':'punch') + '-house-tabs .house-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (type === 'osm') { osmHouseFilter = val; renderOSM(); }
+  else { punchHouseFilter = val; renderPunchList(); }
+}
+
+// ══════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════
+function renderAll() {
+  renderOverview();
+  renderIssues();
+  renderOSM();
+  renderBilling();
+  renderCoordination();
+  renderPunchList();
+  renderMilestones();
+  renderRisks();
+  renderOwnerLog();
+}
+
+// ══════════════════════════════════════
+// OVERVIEW
+// ══════════════════════════════════════
+function renderOverview() {
+  const openIssues = D.issues.filter(i => i.status !== 'Resolved').length;
+  const osmRisk = D.osm.filter(o => o.status === 'Not Ordered').length;
+  const highRisks = D.risks.filter(r => r.score >= 12).length;
+
+  document.getElementById('st-issues').textContent = openIssues;
+  document.getElementById('st-osm').textContent = osmRisk;
+  document.getElementById('st-risks').textContent = highRisks;
+
+  // Days to LOPA target
+  const lopa = D.projects.find(p => p.id === 'lopa');
+  if (lopa && lopa.target) {
+    const days = Math.max(0, Math.ceil((new Date(lopa.target) - new Date()) / 86400000));
+    document.getElementById('st-days').textContent = days;
+  }
+
+  // Critical issues
+  const critical = D.issues.filter(i => i.priority === 'High' && i.status !== 'Resolved').slice(0, 4);
+  const ovIssues = document.getElementById('ov-issues');
+  if (!critical.length) {
+    ovIssues.innerHTML = '<div class="empty"><div class="empty-icon">✓</div>No high priority issues.</div>';
+  } else {
+    ovIssues.innerHTML = critical.map(i => `
+      <div class="data-row">
+        <div class="dot dot-red" style="margin-top:5px;"></div>
+        <div class="data-row-content">
+          <div class="data-row-title">${i.title}</div>
+          <div class="data-row-meta"><span class="badge badge-${i.projectId==='lopa'?'lopa':'laiya'}">${getProjName(i.projectId)}</span><span>${i.house}</span><span>${i.category}</span></div>
+        </div>
+        <span class="tag tag-high">High</span>
+      </div>`).join('');
+  }
+
+  // High risks
+  const hRisks = D.risks.filter(r => r.score >= 12).slice(0, 3);
+  const ovRisks = document.getElementById('ov-risks');
+  if (!hRisks.length) {
+    ovRisks.innerHTML = '<div class="empty"><div class="empty-icon">✓</div>No high risks flagged.</div>';
+  } else {
+    ovRisks.innerHTML = hRisks.map(r => `
+      <div class="data-row">
+        <div class="dot dot-red" style="margin-top:5px;"></div>
+        <div class="data-row-content">
+          <div class="data-row-title">${r.desc}</div>
+          <div class="data-row-meta"><span class="badge badge-${r.projectId==='lopa'?'lopa':'laiya'}">${getProjName(r.projectId)}</span><span>Score: ${r.score}</span></div>
+        </div>
+      </div>`).join('');
+  }
+
+  // OSM not ordered
+  const osmNO = D.osm.filter(o => o.status === 'Not Ordered').slice(0, 4);
+  const ovOSM = document.getElementById('ov-osm');
+  if (!osmNO.length) {
+    ovOSM.innerHTML = '<div class="empty"><div class="empty-icon">✓</div>All items in progress.</div>';
+  } else {
+    ovOSM.innerHTML = osmNO.map(o => `
+      <div class="data-row">
+        <div class="dot dot-amber" style="margin-top:5px;"></div>
+        <div class="data-row-content">
+          <div class="data-row-title">${o.item}</div>
+          <div class="data-row-meta"><span>${o.house}</span><span>${o.category}</span>${o.owner?`<span>${o.owner}</span>`:''}</div>
+        </div>
+        <span class="pill pill-red" style="font-size:9px;padding:2px 7px;">Not Ordered</span>
+      </div>`).join('');
+  }
+
+  // Priorities
+  const ovPrio = document.getElementById('ov-priorities');
+  if (!D.priorities.length) {
+    ovPrio.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>Set priorities in My Week.</div>';
+  } else {
+    ovPrio.innerHTML = D.priorities.map((p, i) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--pink-mid);width:18px;text-align:center;">${i+1}</span>
+        <span style="font-size:12px;flex:1;${p.done?'text-decoration:line-through;color:var(--text-muted);':''}">${p.text}</span>
+        ${p.done?'<span style="color:var(--green);font-size:11px;">✓</span>':''}
+      </div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════
+// ISSUES
+// ══════════════════════════════════════
+function saveIssue() {
+  const projId = document.getElementById('i-proj').value;
+  const issue = {
+    id: Date.now(), projectId: projId,
+    house: document.getElementById('i-house').value,
+    title: document.getElementById('i-title').value.trim(),
+    desc: document.getElementById('i-desc').value.trim(),
+    category: document.getElementById('i-cat').value,
+    priority: document.getElementById('i-pri').value,
+    assigned: document.getElementById('i-assigned').value.trim(),
+    date: document.getElementById('i-date').value,
+    status: 'Open', created: new Date().toISOString()
+  };
+  if (!issue.title) { alert('Please enter a title.'); return; }
+  D.issues.push(issue); save(); closeModal('m-issue'); renderAll(); notify('Issue logged.');
+  ['i-title','i-desc','i-assigned','i-date'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+}
+
+function renderIssues() {
+  const list = document.getElementById('issues-list');
+  const fp = document.getElementById('fi-proj').value;
+  const fs = document.getElementById('fi-stat').value;
+  const fpr = document.getElementById('fi-pri').value;
+  let filtered = D.issues.filter(i => (!fp || i.projectId === fp) && (!fs || i.status === fs) && (!fpr || i.priority === fpr));
+  filtered.sort((a,b) => ({ High:0,Medium:1,Low:2 }[a.priority]||1) - ({ High:0,Medium:1,Low:2 }[b.priority]||1));
+  if (!filtered.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">✓</div>No issues match this filter.</div>'; return; }
+  list.innerHTML = filtered.map(i => `
+    <div class="data-row">
+      <div class="dot dot-${i.priority==='High'?'red':i.priority==='Medium'?'amber':'green'}" style="margin-top:5px;"></div>
+      <div class="data-row-content">
+        <div class="data-row-title">${i.title}</div>
+        <div class="data-row-meta">
+          <span class="badge badge-${i.projectId==='lopa'?'lopa':'laiya'}">${getProjName(i.projectId)}</span>
+          <span>${i.house}</span><span>${i.category}</span>
+          ${i.assigned?`<span>→ ${i.assigned}</span>`:''}
+          ${i.date?`<span>Due ${i.date}</span>`:''}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+        <span class="tag tag-${i.priority.toLowerCase()}">${i.priority}</span>
+        <select class="inline-select" onchange="updateIssueStatus(${i.id},this.value)">
+          ${['Open','In Progress','Resolved'].map(s=>`<option ${i.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="del-btn" onclick="del('issues',${i.id})">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function updateIssueStatus(id, status) {
+  const i = D.issues.find(x => x.id === id);
+  if (i) { i.status = status; save(); renderOverview(); }
+}
+
+// ══════════════════════════════════════
+// OSM
+// ══════════════════════════════════════
+function saveOSM() {
+  const item = {
+    id: Date.now(),
+    house: document.getElementById('o-house').value,
+    category: document.getElementById('o-cat').value,
+    item: document.getElementById('o-item').value.trim(),
+    owner: document.getElementById('o-owner').value.trim(),
+    status: document.getElementById('o-status').value,
+    notes: document.getElementById('o-notes').value.trim(),
+    created: new Date().toISOString()
+  };
+  if (!item.item) { alert('Please enter an item name.'); return; }
+  D.osm.push(item); save(); closeModal('m-osm'); renderAll(); notify('OSM item added.');
+  ['o-item','o-owner','o-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function renderOSM() {
+  const tbody = document.getElementById('osm-body');
+  if (!tbody) return;
+  const filtered = osmHouseFilter === 'all' ? D.osm : D.osm.filter(o => o.house === osmHouseFilter);
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">📦</div>No items for this filter.</div></td></tr>'; return; }
+  tbody.innerHTML = filtered.map(o => {
+    const projId = D.projects.find(p => p.units.includes(o.house))?.id || 'lopa';
+    return `<tr>
+      <td><strong>${o.item}</strong></td>
+      <td>${o.category}</td>
+      <td><span class="badge badge-${projId==='lopa'?'lopa':'laiya'}">${o.house}</span></td>
+      <td>${o.owner||'—'}</td>
+      <td><select class="inline-select" onchange="updateOSMStatus(${o.id},this.value)">
+        ${['Not Ordered','For Approval','Ordered','Delivered','Installed'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td style="font-size:11px;color:var(--text-muted);">${o.notes||'—'}</td>
+      <td><button class="del-btn" onclick="del('osm',${o.id})">×</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateOSMStatus(id, status) {
+  const o = D.osm.find(x => x.id === id);
+  if (o) { o.status = status; save(); renderOverview(); }
+}
+
+// ══════════════════════════════════════
+// BILLING
+// ══════════════════════════════════════
+function saveBilling() {
+  const projId = document.getElementById('b-proj').value;
+  const conId = parseInt(document.getElementById('b-con').value);
+  const con = D.contractors.find(c => c.id === conId);
+  const bill = {
+    id: Date.now(), projectId: projId,
+    contractor: con ? con.name : document.getElementById('b-con').options[document.getElementById('b-con').selectedIndex]?.text || '',
+    desc: document.getElementById('b-desc').value.trim(),
+    amount: parseFloat(document.getElementById('b-amount').value) || 0,
+    submitted: document.getElementById('b-submitted').value,
+    endorse: document.getElementById('b-endorse').value,
+    status: document.getElementById('b-status').value,
+    notes: document.getElementById('b-notes').value.trim(),
+    created: new Date().toISOString()
+  };
+  if (!bill.contractor) { alert('Please select a contractor.'); return; }
+  D.billing.push(bill); save(); closeModal('m-billing'); renderAll(); notify('Billing added.');
+  ['b-desc','b-amount','b-submitted','b-endorse','b-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function renderBilling() {
+  const tbody = document.getElementById('billing-body');
+  if (!tbody) return;
+  if (!D.billing.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">📄</div>No billings logged yet.</div></td></tr>'; return; }
+  const today = new Date();
+  tbody.innerHTML = D.billing.map(b => {
+    const overdue = b.endorse && new Date(b.endorse) < today && b.status !== 'Paid';
+    return `<tr>
+      <td><strong>${b.contractor}</strong></td>
+      <td><span class="badge badge-${b.projectId==='lopa'?'lopa':'laiya'}">${getProjName(b.projectId)}</span></td>
+      <td style="font-size:12px;">${b.desc||'—'}</td>
+      <td><strong>₱${b.amount.toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></td>
+      <td style="font-size:11px;">${b.submitted||'—'}</td>
+      <td style="font-size:11px;${overdue?'color:var(--red);font-weight:500;':''}">${b.endorse||'—'}${overdue?' ⚠':''}
+      </td>
+      <td><select class="inline-select" onchange="updateBillingStatus(${b.id},this.value)">
+        ${['Submitted','For Review','Reviewed','Endorsed','For Payment','Paid','Disputed'].map(s=>`<option ${b.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td><button class="del-btn" onclick="del('billing',${b.id})">×</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateBillingStatus(id, status) {
+  const b = D.billing.find(x => x.id === id);
+  if (b) { b.status = status; save(); }
+}
+
+// ══════════════════════════════════════
+// COORDINATION
+// ══════════════════════════════════════
+function saveFollowup() {
+  const item = {
+    id: Date.now(), projectId: document.getElementById('fu-proj').value,
+    person: document.getElementById('fu-person').value.trim(),
+    what: document.getElementById('fu-what').value.trim(),
+    date: document.getElementById('fu-date').value,
+    status: document.getElementById('fu-status').value,
+    created: new Date().toISOString()
+  };
+  if (!item.what) { alert('Please enter what to follow up on.'); return; }
+  D.followups.push(item); save(); closeModal('m-followup'); renderCoordination(); notify('Follow-up added.');
+  ['fu-person','fu-what','fu-date'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function saveAction() {
+  const item = {
+    id: Date.now(), projectId: document.getElementById('ai-proj').value,
+    person: document.getElementById('ai-person').value.trim(),
+    what: document.getElementById('ai-what').value.trim(),
+    date: document.getElementById('ai-date').value,
+    status: document.getElementById('ai-status').value,
+    created: new Date().toISOString()
+  };
+  if (!item.what) { alert('Please enter the action.'); return; }
+  D.actions.push(item); save(); closeModal('m-action'); renderCoordination(); notify('Action item added.');
+  ['ai-person','ai-what','ai-date'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function saveLog() {
+  const today = new Date().toISOString().split('T')[0];
+  const item = {
+    id: Date.now(), projectId: document.getElementById('cl-proj').value,
+    with: document.getElementById('cl-with').value.trim(),
+    date: document.getElementById('cl-date').value || today,
+    discussed: document.getElementById('cl-discussed').value.trim(),
+    decided: document.getElementById('cl-decided').value.trim(),
+    created: new Date().toISOString()
+  };
+  if (!item.discussed) { alert('Please enter what was discussed.'); return; }
+  D.coordlogs.push(item); save(); closeModal('m-log'); renderCoordination(); notify('Log entry saved.');
+  ['cl-with','cl-date','cl-discussed','cl-decided'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function renderCoordination() {
+  // Follow-ups
+  const fuEl = document.getElementById('followup-list');
+  if (fuEl) {
+    const pending = D.followups.filter(f => f.status !== 'Done');
+    if (!pending.length) { fuEl.innerHTML = '<div class="empty"><div class="empty-icon">✓</div>No pending follow-ups.</div>'; }
+    else { fuEl.innerHTML = pending.map(f => `
+      <div class="data-row">
+        <div class="dot dot-amber" style="margin-top:5px;"></div>
+        <div class="data-row-content">
+          <div class="data-row-title">${f.what}</div>
+          <div class="data-row-meta">${f.person?`<span>→ ${f.person}</span>`:''}${f.date?`<span>By ${f.date}</span>`:''}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <select class="inline-select" onchange="updateFUStatus(${f.id},this.value)">
+            ${['Pending','Done'].map(s=>`<option ${f.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <button class="del-btn" onclick="del('followups',${f.id})">×</button>
+        </div>
+      </div>`).join(''); }
+  }
+
+  // Actions
+  const acEl = document.getElementById('action-list');
+  if (acEl) {
+    const open = D.actions.filter(a => a.status !== 'Done');
+    if (!open.length) { acEl.innerHTML = '<div class="empty"><div class="empty-icon">✓</div>No open action items.</div>'; }
+    else { acEl.innerHTML = open.map(a => `
+      <div class="data-row">
+        <div class="dot dot-pink" style="margin-top:5px;"></div>
+        <div class="data-row-content">
+          <div class="data-row-title">${a.what}</div>
+          <div class="data-row-meta">${a.person?`<span>→ ${a.person}</span>`:''}${a.date?`<span>Due ${a.date}</span>`:''}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <select class="inline-select" onchange="updateActionStatus(${a.id},this.value)">
+            ${['Open','In Progress','Done'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <button class="del-btn" onclick="del('actions',${a.id})">×</button>
+        </div>
+      </div>`).join(''); }
+  }
+
+  // Log
+  const logEl = document.getElementById('coord-log');
+  if (logEl) {
+    const sorted = [...D.coordlogs].sort((a,b) => new Date(b.date) - new Date(a.date));
+    if (!sorted.length) { logEl.innerHTML = '<div class="empty"><div class="empty-icon">📝</div>No log entries yet.</div>'; }
+    else { logEl.innerHTML = sorted.map(l => `
+      <div class="data-row" style="align-items:flex-start;">
+        <div style="flex-shrink:0;width:70px;">
+          <div style="font-size:10px;letter-spacing:.06em;color:var(--text-muted);text-transform:uppercase;">${l.date||'—'}</div>
+        </div>
+        <div class="data-row-content">
+          <div class="data-row-title">${l.with||'Coordination'} <span class="badge badge-${l.projectId==='lopa'?'lopa':'laiya'}" style="margin-left:4px;">${getProjName(l.projectId)}</span></div>
+          <div style="font-size:12px;color:var(--text);margin-top:4px;"><strong>Discussed:</strong> ${l.discussed}</div>
+          ${l.decided?`<div style="font-size:12px;color:var(--text-muted);margin-top:3px;"><strong>Decided:</strong> ${l.decided}</div>`:''}
+        </div>
+        <button class="del-btn" onclick="del('coordlogs',${l.id})">×</button>
+      </div>`).join(''); }
+  }
+}
+
+function updateFUStatus(id, status) { const f = D.followups.find(x=>x.id===id); if(f){f.status=status;save();renderCoordination();} }
+function updateActionStatus(id, status) { const a = D.actions.find(x=>x.id===id); if(a){a.status=status;save();renderCoordination();} }
+
+// ══════════════════════════════════════
+// PUNCH LIST
+// ══════════════════════════════════════
+function savePunch() {
+  const item = {
+    id: Date.now(),
+    house: document.getElementById('pl-house').value,
+    room: document.getElementById('pl-room').value.trim(),
+    item: document.getElementById('pl-item').value.trim(),
+    trade: document.getElementById('pl-trade').value,
+    done: false, created: new Date().toISOString()
+  };
+  if (!item.item || !item.room) { alert('Please fill in room and item.'); return; }
+  D.punchlist.push(item); save(); closeModal('m-punch'); renderPunchList(); notify('Punch list item added.');
+  ['pl-room','pl-item'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function renderPunchList() {
+  const el = document.getElementById('punch-content');
+  if (!el) return;
+  const filtered = punchHouseFilter === 'all' ? D.punchlist : D.punchlist.filter(p => p.house === punchHouseFilter);
+  if (!filtered.length) { el.innerHTML = '<div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">✓</div>No punch list items for this house.</div></div></div>'; return; }
+
+  // Group by house > room
+  const byHouse = {};
+  filtered.forEach(p => {
+    if (!byHouse[p.house]) byHouse[p.house] = {};
+    if (!byHouse[p.house][p.room]) byHouse[p.house][p.room] = [];
+    byHouse[p.house][p.room].push(p);
+  });
+
+  el.innerHTML = Object.entries(byHouse).map(([house, rooms]) => {
+    const total = Object.values(rooms).flat().length;
+    const done = Object.values(rooms).flat().filter(p=>p.done).length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    const projId = D.projects.find(p=>p.units.includes(house))?.id||'lopa';
+    return `<div class="card" style="margin-bottom:12px;">
+      <div class="card-head">
+        <span class="card-label"><span class="badge badge-${projId==='lopa'?'lopa':'laiya'}">${house}</span></span>
+        <span style="font-size:11px;color:var(--text-muted);">${done}/${total} done — ${pct}%</span>
+      </div>
+      <div style="padding:0 18px 4px;">
+        <div class="progress-wrap" style="margin:10px 0;"><div class="progress-fill ${pct===100?'green':pct>50?'amber':''}" style="width:${pct}%"></div></div>
+      </div>
+      ${Object.entries(rooms).map(([room, items]) => {
+        const rdone = items.filter(p=>p.done).length;
+        return `<div class="punch-room">
+          <div class="punch-room-head" onclick="toggleRoom(this)">
+            <span class="punch-room-name">${room}</span>
+            <span class="punch-room-pct">${rdone}/${items.length}</span>
+            <span style="font-size:10px;color:var(--text-muted);">▾</span>
+          </div>
+          <div class="punch-items open">
+            ${items.map(p=>`
+              <div class="punch-item">
+                <div class="punch-check ${p.done?'done':''}" onclick="togglePunch(${p.id})"></div>
+                <div class="punch-item-text ${p.done?'done':''}">${p.item}</div>
+                <span style="font-size:10px;color:var(--text-muted);margin-right:8px;">${p.trade}</span>
+                <button class="del-btn" onclick="del('punchlist',${p.id})" style="font-size:14px;">×</button>
+              </div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function toggleRoom(el) {
+  const items = el.nextElementSibling;
+  items.classList.toggle('open');
+}
+
+function togglePunch(id) {
+  const p = D.punchlist.find(x=>x.id===id);
+  if (p) { p.done = !p.done; save(); renderPunchList(); }
+}
+
+// ══════════════════════════════════════
+// MILESTONES
+// ══════════════════════════════════════
+function saveMilestone() {
+  const item = {
+    id: Date.now(), project: document.getElementById('ms-proj').value,
+    name: document.getElementById('ms-name').value.trim(),
+    target: document.getElementById('ms-target').value,
+    actual: document.getElementById('ms-actual').value,
+    status: document.getElementById('ms-status').value
+  };
+  if (!item.name) { alert('Please enter a milestone name.'); return; }
+  D.milestones.push(item); save(); closeModal('m-milestone'); renderMilestones(); notify('Milestone added.');
+  ['ms-name','ms-target','ms-actual'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function renderMilestones() {
+  const el = document.getElementById('milestones-content');
+  if (!el) return;
+  if (!D.milestones.length) { el.innerHTML = '<div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">📅</div>No milestones added yet.</div></div></div>'; return; }
+
+  const byProj = {};
+  D.milestones.forEach(m => {
+    if (!byProj[m.project]) byProj[m.project] = [];
+    byProj[m.project].push(m);
+  });
+
+  const statusDot = { 'Completed':'green', 'In Progress':'amber', 'Delayed':'red', 'Not Started':'gray' };
+
+  el.innerHTML = Object.entries(byProj).map(([projId, ms]) => {
+    const proj = D.projects.find(p=>p.id===projId);
+    return `<div class="card" style="margin-bottom:14px;">
+      <div class="card-head">
+        <span class="card-label"><span class="badge badge-${projId==='lopa'?'lopa':'laiya'}">${proj?.name||projId}</span></span>
+      </div>
+      <div class="card-body" style="padding:0 18px;">
+        ${ms.map(m => `
+          <div class="milestone-row">
+            <div class="milestone-dot" style="background:var(--${statusDot[m.status]||'gray'});"></div>
+            <div class="milestone-name">${m.name}</div>
+            <div class="milestone-dates">
+              <div class="milestone-date"><span>Target</span>${m.target||'—'}</div>
+              <div class="milestone-date"><span>Actual</span>${m.actual||'—'}</div>
+            </div>
+            <select class="inline-select" onchange="updateMSStatus(${m.id},this.value)">
+              ${['Not Started','In Progress','Completed','Delayed'].map(s=>`<option ${m.status===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+            <input type="date" class="form-input" style="width:130px;padding:3px 6px;font-size:11px;" value="${m.actual||''}" onchange="updateMSActual(${m.id},this.value)" placeholder="Actual date">
+            <button class="del-btn" onclick="del('milestones',${m.id})">×</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateMSStatus(id, status) { const m=D.milestones.find(x=>x.id===id); if(m){m.status=status;save();renderMilestones();} }
+function updateMSActual(id, date) { const m=D.milestones.find(x=>x.id===id); if(m){m.actual=date;save();} }
+
+// ══════════════════════════════════════
+// RISKS
+// ══════════════════════════════════════
+function saveRisk() {
+  const like = parseInt(document.getElementById('ri-like').value);
+  const impact = parseInt(document.getElementById('ri-impact').value);
+  const item = {
+    id: Date.now(), projectId: document.getElementById('ri-proj').value,
+    desc: document.getElementById('ri-desc').value.trim(),
+    likelihood: like, impact: impact, score: like * impact,
+    mitigation: document.getElementById('ri-mit').value.trim(),
+    owner: document.getElementById('ri-owner').value.trim(),
+    created: new Date().toISOString()
+  };
+  if (!item.desc) { alert('Please describe the risk.'); return; }
+  D.risks.push(item); save(); closeModal('m-risk'); renderAll(); notify('Risk added.');
+  ['ri-desc','ri-mit','ri-owner'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function renderRisks() {
+  const el = document.getElementById('risks-list');
+  if (!el) return;
+  const sorted = [...D.risks].sort((a,b) => b.score - a.score);
+  if (!sorted.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">✓</div>No risks logged. Stay ahead — flag things before they happen.</div>'; return; }
+  el.innerHTML = sorted.map(r => {
+    const level = r.score >= 12 ? 'high' : r.score >= 6 ? 'med' : 'low';
+    return `<div class="risk-row">
+      <div class="risk-score ${level}">${r.score}</div>
+      <div class="risk-content">
+        <div class="risk-title">${r.desc} <span class="badge badge-${r.projectId==='lopa'?'lopa':'laiya'}" style="margin-left:4px;">${getProjName(r.projectId)}</span></div>
+        <div class="risk-mitigation">L${r.likelihood} × I${r.impact}${r.mitigation?' — '+r.mitigation:''}</div>
+        ${r.owner?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Owner: ${r.owner}</div>`:''}
+      </div>
+      <button class="del-btn" onclick="del('risks',${r.id})">×</button>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// OWNER LOG
+// ══════════════════════════════════════
+function saveOwnerLog() {
+  const item = {
+    id: Date.now(), projectId: document.getElementById('ol-proj').value,
+    house: document.getElementById('ol-house').value,
+    owner: document.getElementById('ol-owner').value.trim(),
+    date: document.getElementById('ol-date').value,
+    channel: document.getElementById('ol-channel').value,
+    told: document.getElementById('ol-told').value.trim(),
+    response: document.getElementById('ol-response').value.trim(),
+    created: new Date().toISOString()
+  };
+  if (!item.told) { alert('Please enter what you told the owner.'); return; }
+  D.ownerlog.push(item); save(); closeModal('m-ownerlog'); renderOwnerLog(); notify('Owner communication logged.');
+  ['ol-owner','ol-told','ol-response'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function renderOwnerLog() {
+  const el = document.getElementById('ownerlog-list');
+  if (!el) return;
+  const fp = document.getElementById('fol-proj').value;
+  const fh = document.getElementById('fol-house').value;
+  let filtered = D.ownerlog.filter(o => (!fp || o.projectId === fp) && (!fh || o.house === fh));
+  filtered.sort((a,b) => new Date(b.date||b.created) - new Date(a.date||a.created));
+  if (!filtered.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">💬</div>No owner communications logged yet.</div>'; return; }
+  el.innerHTML = filtered.map(o => `
+    <div class="data-row" style="align-items:flex-start;">
+      <div style="flex-shrink:0;width:70px;">
+        <div style="font-size:10px;color:var(--text-muted);letter-spacing:.05em;">${o.date||'—'}</div>
+        <div style="font-size:9px;color:var(--text-light);margin-top:2px;text-transform:uppercase;">${o.channel}</div>
+      </div>
+      <div class="data-row-content">
+        <div class="data-row-title">${o.owner||o.house} <span class="badge badge-${o.projectId==='lopa'?'lopa':'laiya'}" style="margin-left:4px;">${o.house}</span></div>
+        <div style="font-size:12px;color:var(--text);margin-top:4px;"><strong>Told:</strong> ${o.told}</div>
+        ${o.response?`<div style="font-size:12px;color:var(--text-muted);margin-top:3px;"><strong>Response:</strong> ${o.response}</div>`:''}
+      </div>
+      <button class="del-btn" onclick="del('ownerlog',${o.id})">×</button>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════
+// PRIORITIES
+// ══════════════════════════════════════
+function renderPriorities() {
+  const el = document.getElementById('priorities-list');
+  if (!el) return;
+  if (!D.priorities.length) { el.innerHTML = '<div class="empty" style="padding:16px 0;">No priorities set. Add one below or use AI Suggest.</div>'; return; }
+  el.innerHTML = D.priorities.map((p,i) => `
+    <div class="priority-item">
+      <div class="priority-num">${i+1}</div>
+      <div class="priority-text">
+        <div class="priority-title" style="${p.done?'text-decoration:line-through;color:var(--text-muted);':''}">${p.text}</div>
+      </div>
+      <div class="pcheck ${p.done?'checked':''}" onclick="togglePriority(${i})"></div>
+      <button class="del-btn" onclick="delPriority(${i})">×</button>
+    </div>`).join('');
+}
+
+function addPriority() {
+  const input = document.getElementById('new-priority');
+  const text = input.value.trim();
+  if (!text) return;
+  if (D.priorities.length >= 5) { notify('Max 5 priorities. Check one off first.'); return; }
+  D.priorities.push({ text, done: false }); save(); renderPriorities(); renderOverview(); input.value = '';
+}
+
+function togglePriority(i) { D.priorities[i].done = !D.priorities[i].done; save(); renderPriorities(); renderOverview(); }
+function delPriority(i) { D.priorities.splice(i,1); save(); renderPriorities(); renderOverview(); }
+
+// ══════════════════════════════════════
+// MY WEEK
+// ══════════════════════════════════════
+function renderWeek() {
+  const schedules = {
+    Monday:    [{ time:'9AM–3PM', task:'LOPA site visit — quality check, issues walkthrough' },{ time:'3PM–5PM', task:'Email and owner replies (batch)' },{ time:'5PM–6PM', task:'Log issues from site' },{ time:'8PM–9PM', task:'OSM review — H2 & H3' }],
+    Tuesday:   [{ time:'9AM–11AM', task:'Electrical coordination — critical' },{ time:'11AM–1PM', task:'Billing review' },{ time:'2PM–4PM', task:'Supplier follow-ups' },{ time:'4PM–6PM', task:'Email and owner replies' },{ time:'8PM–9PM', task:'OSM review — H4 & H5' }],
+    Wednesday: [{ time:'All day', task:'Laiya Beach House — site visit (3hr travel each way)' },{ time:'8PM–9PM', task:'Rest. Travel day.' }],
+    Thursday:  [{ time:'9AM–11AM', task:'Issues tracking — per house' },{ time:'11AM–1PM', task:'Design coordination — Ar. Mary Faye & Jon Uel' },{ time:'2PM–4PM', task:'Contracts and pending docs' },{ time:'4PM–6PM', task:'Email and owner replies' },{ time:'8PM–9PM', task:'OSM review — H6, H7 & H8' }],
+    Friday:    [{ time:'9AM–3PM', task:'LOPA site visit — electrical, waterproofing' },{ time:'3PM–5PM', task:'Weekly wrap-up' },{ time:'5PM–6PM', task:'Prep 3 priorities for next week' },{ time:'8PM–9PM', task:'Free. You made it.' }]
+  };
+
+  const today = new Date().toLocaleDateString('en-US',{weekday:'long'});
+  const todaySched = schedules[today];
+  const todayEl = document.getElementById('today-sched');
+  if (todayEl) {
+    if (todaySched) {
+      todayEl.innerHTML = todaySched.map(b=>`<div class="time-block"><div class="time-block-time">${b.time}</div><div class="time-block-task">${b.task}</div></div>`).join('');
+    } else {
+      todayEl.innerHTML = '<div class="empty" style="padding:20px 0;">Weekend — rest up.</div>';
+    }
+  }
+
+  const grid = document.getElementById('week-grid');
+  if (grid) {
+    grid.innerHTML = Object.entries(schedules).map(([day, blocks]) => `
+      <div class="week-day" style="${day===today?'border-color:var(--pink-mid);':'' }">
+        <div class="week-day-head" style="${day===today?'':'background:var(--bg);'}">
+          <div class="week-day-name" style="${day===today?'':'color:var(--text-muted);'}">${day}</div>
+          ${day===today?'<div class="week-day-today">Today</div>':''}
+        </div>
+        <div class="week-day-body">
+          ${blocks.map(b=>`<div class="time-block"><div class="time-block-time">${b.time}</div><div class="time-block-task">${b.task}</div></div>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════
+function renderSettings() {
+  // Projects
+  const projEl = document.getElementById('projects-list');
+  if (projEl) {
+    projEl.innerHTML = D.projects.map(p => `
+      <div class="settings-item">
+        <div class="settings-item-main">
+          <div style="font-size:13px;font-weight:500;">${p.name} <span class="badge badge-${p.id==='lopa'?'lopa':'laiya'}" style="margin-left:4px;">${p.id}</span></div>
+          <div class="settings-item-sub">Units: ${p.units.join(', ')}
+            <button style="background:none;border:none;color:var(--pink-dark);font-size:11px;cursor:pointer;margin-left:8px;" onclick="addUnit('${p.id}')">+ Add unit</button>
+          </div>
+        </div>
+        ${D.projects.length > 1 ? `<button class="del-btn" onclick="delProject('${p.id}')">×</button>` : ''}
+      </div>`).join('');
+  }
+
+  // Contractors
+  const conEl = document.getElementById('contractors-list');
+  if (conEl) {
+    if (!D.contractors.length) { conEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:8px 0;">No contractors added.</div>'; }
+    else { conEl.innerHTML = D.contractors.map(c => `
+      <div class="settings-item">
+        <div class="settings-item-main">
+          <div style="font-size:13px;">${c.name}</div>
+          <div class="settings-item-sub">${c.role} — ${getProjName(c.project)}</div>
+        </div>
+        <button class="del-btn" onclick="delContractor(${c.id})">×</button>
+      </div>`).join(''); }
+  }
+
+  // Contacts
+  const ctEl = document.getElementById('contacts-list');
+  if (ctEl) {
+    if (!D.contacts.length) { ctEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:8px 0;">No contacts added.</div>'; }
+    else { ctEl.innerHTML = D.contacts.map(c => `
+      <div class="settings-item">
+        <div class="settings-item-main">
+          <div style="font-size:13px;">${c.name}</div>
+          <div class="settings-item-sub">${c.role} — ${getProjName(c.project)}</div>
+        </div>
+        <button class="del-btn" onclick="delContact(${c.id})">×</button>
+      </div>`).join(''); }
+  }
+
+  // Repopulate dropdowns
+  populateAllDropdowns();
+}
+
+function addProject() {
+  const name = document.getElementById('new-project-name').value.trim();
+  if (!name) return;
+  const id = name.toLowerCase().replace(/\s+/g,'_');
+  if (D.projects.find(p=>p.id===id)) { notify('Project already exists.'); return; }
+  D.projects.push({ id, name, units:[], color:'lopa', target:'' });
+  save(); renderSettings(); renderAll(); notify('Project added.');
+  document.getElementById('new-project-name').value = '';
+}
+
+function delProject(id) {
+  if (!confirm('Delete this project?')) return;
+  D.projects = D.projects.filter(p=>p.id!==id);
+  save(); renderSettings(); renderAll();
+}
+
+function addUnit(projId) {
+  const name = prompt('Unit name (e.g. H9, Block A):');
+  if (!name) return;
+  const proj = D.projects.find(p=>p.id===projId);
+  if (proj) { proj.units.push(name.trim()); save(); renderSettings(); populateAllDropdowns(); }
+}
+
+function addContractor() {
+  const name = document.getElementById('new-con-name').value.trim();
+  const role = document.getElementById('new-con-role').value.trim();
+  const project = document.getElementById('new-con-proj').value;
+  if (!name) { alert('Please enter a name.'); return; }
+  D.contractors.push({ id: Date.now(), name, role, project });
+  save(); renderSettings(); notify('Contractor added.');
+  ['new-con-name','new-con-role'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function delContractor(id) { D.contractors = D.contractors.filter(c=>c.id!==id); save(); renderSettings(); }
+
+function addContact() {
+  const name = document.getElementById('new-contact-name').value.trim();
+  const role = document.getElementById('new-contact-role').value.trim();
+  const project = document.getElementById('new-contact-proj').value;
+  if (!name) { alert('Please enter a name.'); return; }
+  D.contacts.push({ id: Date.now(), name, role, project });
+  save(); renderSettings(); notify('Contact added.');
+  ['new-contact-name','new-contact-role'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+}
+
+function delContact(id) { D.contacts = D.contacts.filter(c=>c.id!==id); save(); renderSettings(); }
+
+// ══════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════
+function del(collection, id) {
+  if (!confirm('Delete this item?')) return;
+  D[collection] = D[collection].filter(x => x.id !== id);
+  save(); renderAll();
+}
+
+// ══════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════
+function getProjName(id) {
+  return D.projects.find(p=>p.id===id)?.name || id || '—';
+}
+
+function buildContext() {
+  return JSON.stringify({
+    projects: D.projects.map(p=>p.name),
+    openIssues: D.issues.filter(i=>i.status!=='Resolved').length,
+    criticalIssues: D.issues.filter(i=>i.priority==='High'&&i.status!=='Resolved').map(i=>({ title:i.title, house:i.house, project:getProjName(i.projectId) })),
+    osmNotOrdered: D.osm.filter(o=>o.status==='Not Ordered').map(o=>({ item:o.item, house:o.house })),
+    highRisks: D.risks.filter(r=>r.score>=12).map(r=>({ desc:r.desc, score:r.score })),
+    pendingBilling: D.billing.filter(b=>b.status==='For Review'||b.status==='Submitted').length,
+    pendingFollowups: D.followups.filter(f=>f.status!=='Done').length,
+    openActions: D.actions.filter(a=>a.status!=='Done').length,
+    daysToLopaTarget: Math.ceil((new Date(D.projects.find(p=>p.id==='lopa')?.target||'2025-08-31') - new Date()) / 86400000),
+    priorities: D.priorities.map(p=>p.text),
+    milestoneDelays: D.milestones.filter(m=>m.status==='Delayed').map(m=>m.name)
+  });
+}
+
+// ══════════════════════════════════════
+// QUICK CAPTURE
+// ══════════════════════════════════════
+let capturedItems = [];
+
+async function runCapture() {
+  const text = document.getElementById('capture-input').value.trim();
+  if (!text) return;
+  const btn = document.getElementById('capture-btn');
+  btn.innerHTML = '<div class="loading" style="border-color:rgba(255,255,255,.3);border-top-color:white;"></div>';
+  btn.disabled = true;
+
+  const projList = D.projects.map(p=>`${p.name} (id:${p.id}, units:${p.units.join(',')})`).join('; ');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:`You are a construction PM assistant parsing quick capture notes for Faye of Foro Consulting. Projects: ${projList}. 
+Parse the note and return ONLY a JSON array of items. Each item: { "type": "issue"|"osm"|"followup"|"action"|"ownerlog", "projectId": project id, "house": unit name, "title": clean professional title, "desc": clean detail, "priority": "High"|"Medium"|"Low" (for issues), "person": person name if mentioned, "status": default status }. 
+Fix typos, improve language, be professional. Return ONLY valid JSON array, no markdown.`,
+        messages:[{ role:'user', content: text }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.map(c=>c.text||'').join('') || '[]';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    capturedItems = JSON.parse(clean);
+    showCapturePreview();
+  } catch(e) {
+    notify('Error parsing. Try again.');
+  }
+
+  btn.innerHTML = '✦ Parse &amp; File';
+  btn.disabled = false;
+}
+
+function showCapturePreview() {
+  const preview = document.getElementById('capture-preview');
+  const items = document.getElementById('capture-items');
+  const typeColors = { issue:'tag-high', osm:'pill-amber', followup:'pill-pink', action:'pill-purple', ownerlog:'pill-green' };
+  const typeLabels = { issue:'Issue', osm:'OSM', followup:'Follow-up', action:'Action', ownerlog:'Owner Log' };
+
+  items.innerHTML = capturedItems.map((item, i) => `
+    <div class="capture-item">
+      <span class="capture-item-type tag ${typeColors[item.type]||'tag-low'}">${typeLabels[item.type]||item.type}</span>
+      <div class="capture-item-text">
+        <input type="text" value="${item.title||item.what||''}" onchange="capturedItems[${i}].title=this.value" style="width:100%;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);outline:none;font-weight:500;">
+        ${item.desc?`<div style="font-size:11px;color:var(--pink-text);margin-top:2px;">${item.desc}</div>`:''}
+        ${item.house?`<div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${item.house} — ${getProjName(item.projectId)}</div>`:''}
+      </div>
+    </div>`).join('');
+
+  preview.style.display = 'block';
+}
+
+function confirmCapture() {
+  capturedItems.forEach(item => {
+    const id = Date.now() + Math.random();
+    const projId = item.projectId || D.projects[0]?.id || 'lopa';
+    if (item.type === 'issue') {
+      D.issues.push({ id, projectId:projId, house:item.house||'', title:item.title||item.desc||'Issue', desc:item.desc||'', category:'Other', priority:item.priority||'Medium', assigned:item.person||'', date:'', status:'Open', created:new Date().toISOString() });
+    } else if (item.type === 'osm') {
+      D.osm.push({ id, house:item.house||'', category:'Other', item:item.title||item.desc||'OSM Item', owner:item.person||'', status:'Not Ordered', notes:item.desc||'', created:new Date().toISOString() });
+    } else if (item.type === 'followup') {
+      D.followups.push({ id, projectId:projId, person:item.person||'', what:item.title||item.desc||'', date:'', status:'Pending', created:new Date().toISOString() });
+    } else if (item.type === 'action') {
+      D.actions.push({ id, projectId:projId, person:item.person||'', what:item.title||item.desc||'', date:'', status:'Open', created:new Date().toISOString() });
+    } else if (item.type === 'ownerlog') {
+      D.ownerlog.push({ id, projectId:projId, house:item.house||'', owner:item.person||'', date:new Date().toISOString().split('T')[0], channel:'Other', told:item.title||item.desc||'', response:'', created:new Date().toISOString() });
+    }
+  });
+  save(); renderAll();
+  dismissCapture();
+  notify(`${capturedItems.length} item${capturedItems.length>1?'s':''} saved.`);
+  capturedItems = [];
+}
+
+function dismissCapture() {
+  document.getElementById('capture-preview').style.display = 'none';
+  capturedItems = [];
+}
+
+function clearCapture() {
+  document.getElementById('capture-input').value = '';
+  dismissCapture();
+}
+
+// ══════════════════════════════════════
+// AI ASSIST
+// ══════════════════════════════════════
+async function runAI(prompt) {
+  document.getElementById('ai-loading').style.display = 'block';
+  document.getElementById('ai-response').innerHTML = '<div class="empty" style="padding:50px 0;"><div class="loading"></div></div>';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:1000,
+        system:`You are a direct, no-fluff construction PM assistant for Faye of Foro Consulting Inc. in the Philippines. She manages LOPA (7 houses, finishing, August 2025 target) and Laiya Beach House. She is solo — no admin support. Be concise, prioritize ruthlessly, give clear next steps. Current data: ${buildContext()}`,
+        messages:[{ role:'user', content:prompt }]
+      })
+    });
+    const data = await res.json();
+    document.getElementById('ai-response').textContent = data.content?.map(c=>c.text||'').join('') || 'No response.';
+  } catch(e) {
+    document.getElementById('ai-response').textContent = 'Error connecting to AI.';
+  }
+  document.getElementById('ai-loading').style.display = 'none';
+}
+
+async function runCustomAI() {
+  const input = document.getElementById('ai-input').value.trim();
+  if (!input) return;
+  await runAI(input);
+}
+
+async function aiSuggestPriorities() {
+  const btn = event.currentTarget;
+  btn.textContent = '...'; btn.disabled = true;
+  const respEl = document.getElementById('ai-prio-response');
+  respEl.style.display = 'block';
+  respEl.innerHTML = '<div class="loading"></div>';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:600,
+        system:'Return ONLY a JSON array of exactly 5 priority objects with "text" field. No markdown, no explanation.',
+        messages:[{ role:'user', content:`Project data: ${buildContext()}. Suggest 5 specific weekly priorities for a solo construction PM.` }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.map(c=>c.text||'').join('') || '[]';
+    const suggestions = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    respEl.innerHTML = '<div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--pink-text);margin-bottom:10px;">AI Suggestions — tap to add:</div>' +
+      suggestions.map(s=>`<div style="padding:7px 0;border-bottom:1px solid var(--pink-mid);cursor:pointer;font-size:12px;" onclick="addAIPrio('${s.text.replace(/'/g,"\\'")}')">+ ${s.text}</div>`).join('');
+  } catch(e) {
+    respEl.textContent = 'Error fetching suggestions.';
+  }
+  btn.textContent = '✦ AI Suggest'; btn.disabled = false;
+}
+
+function addAIPrio(text) {
+  if (D.priorities.length >= 5) { notify('Max 5 priorities.'); return; }
+  D.priorities.push({ text, done:false }); save(); renderPriorities(); renderOverview(); notify('Priority added.');
+}
+</script>
+</body>
+</html>
