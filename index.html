@@ -1051,6 +1051,15 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 
 <script>
 // ══════════════════════════════════════
+// API HEADERS — required for direct browser calls to Anthropic
+// ══════════════════════════════════════
+const API_HEADERS = {
+  'Content-Type': 'application/json',
+  'anthropic-version': '2023-06-01',
+  'anthropic-dangerous-direct-browser-access': 'true'
+};
+
+// ══════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════
 const PW = 'foro2025';
@@ -2102,7 +2111,7 @@ async function runCapture() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers: API_HEADERS,
       body: JSON.stringify({
         model:'claude-sonnet-4-6',
         max_tokens:1000,
@@ -2187,7 +2196,7 @@ async function runAI(prompt) {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers: API_HEADERS,
       body: JSON.stringify({
         model:'claude-sonnet-4-6', max_tokens:1000,
         system:`You are a direct, no-fluff construction PM assistant for Faye of Foro Consulting Inc. in the Philippines. She manages LOPA (7 houses, finishing, August 2025 target) and Laiya Beach House. She is solo — no admin support. Be concise, prioritize ruthlessly, give clear next steps. Current data: ${buildContext()}`,
@@ -2218,7 +2227,7 @@ async function aiSuggestPriorities() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers: API_HEADERS,
       body: JSON.stringify({
         model:'claude-sonnet-4-6', max_tokens:600,
         system:'Return ONLY a JSON array of exactly 5 priority objects with "text" field. No markdown, no explanation.',
