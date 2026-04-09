@@ -2128,7 +2128,8 @@ Rules: Fix ALL typos. Improve sentence structure. Be specific. If unclear which 
     capturedItems = JSON.parse(clean);
     showCapturePreview();
   } catch(e) {
-    notify('Error parsing. Try again.');
+    console.error('Capture error:', e, e.message);
+    notify('Error: ' + (e.message || 'Try again'));
   }
 
   btn.innerHTML = '✦ Parse &amp; File';
