@@ -724,6 +724,13 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
     <div class="panel" id="panel-settings">
       <div class="section-title">Settings</div>
       <div class="section-sub">Manage projects, units, contractors, and contacts</div>
+      <div style="margin-bottom:18px;padding:12px 16px;background:var(--pink);border:1px solid var(--pink-mid);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--pink-text);margin-bottom:2px;">Anthropic API Key</div>
+          <div style="font-size:11px;color:var(--text-muted);" id="api-key-status"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="resetApiKey()">Reset Key</button>
+      </div>
 
       <div class="grid grid-2">
         <!-- PROJECTS -->
@@ -1053,11 +1060,18 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 // ══════════════════════════════════════
 // API HEADERS — required for direct browser calls to Anthropic
 // ══════════════════════════════════════
-const API_HEADERS = {
-  'Content-Type': 'application/json',
-  'anthropic-version': '2023-06-01',
-  'anthropic-dangerous-direct-browser-access': 'true'
-};
+function getApiKey() {
+  return localStorage.getItem('faye_api_key') || '';
+}
+
+function getApiHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'anthropic-version': '2023-06-01',
+    'anthropic-dangerous-direct-browser-access': 'true',
+    'x-api-key': getApiKey()
+  };
+}
 
 // ══════════════════════════════════════
 // AUTH
@@ -1066,6 +1080,13 @@ const PW = 'foro2025';
 
 function doLogin() {
   if (document.getElementById('pw-input').value === PW) {
+    // Prompt for API key if not already saved
+    if (!localStorage.getItem('faye_api_key')) {
+      const key = prompt('Enter your Anthropic API key to enable AI features:\n(Get it from console.anthropic.com → API Keys)\n\nThis is stored only in your browser.');
+      if (key && key.trim().startsWith('sk-')) {
+        localStorage.setItem('faye_api_key', key.trim());
+      }
+    }
     document.getElementById('login-screen').style.display = 'none';
     const app = document.getElementById('app');
     app.style.display = 'flex';
@@ -1967,6 +1988,30 @@ function renderWeek() {
 // ══════════════════════════════════════
 // SETTINGS
 // ══════════════════════════════════════
+function resetApiKey() {
+  const key = prompt('Enter your Anthropic API key:\n(Get it from console.anthropic.com → API Keys)');
+  if (key && key.trim().startsWith('sk-')) {
+    localStorage.setItem('faye_api_key', key.trim());
+    notify('API key saved.');
+    renderApiKeyStatus();
+  } else if (key !== null) {
+    notify('Invalid key — must start with sk-');
+  }
+}
+
+function renderApiKeyStatus() {
+  const el = document.getElementById('api-key-status');
+  if (!el) return;
+  const key = getApiKey();
+  if (key) {
+    el.textContent = 'Key set: ' + key.substring(0, 8) + '••••••••••••••••••••';
+    el.style.color = 'var(--green)';
+  } else {
+    el.textContent = 'No key set — AI features will not work.';
+    el.style.color = 'var(--red)';
+  }
+}
+
 function renderSettings() {
   // Projects
   const projEl = document.getElementById('projects-list');
@@ -2013,6 +2058,7 @@ function renderSettings() {
 
   // Repopulate dropdowns
   populateAllDropdowns();
+  renderApiKeyStatus();
 }
 
 function addProject() {
@@ -2111,7 +2157,7 @@ async function runCapture() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers: API_HEADERS,
+      headers: getApiHeaders(),
       body: JSON.stringify({
         model:'claude-sonnet-4-6',
         max_tokens:1000,
@@ -2123,6 +2169,13 @@ Rules: Fix ALL typos. Improve sentence structure. Be specific. If unclear which 
       })
     });
     const data = await res.json();
+    if (data.error) {
+      notify('API Error: ' + (data.error.message || data.error.type || 'check key in Settings'));
+      console.error('API error:', data.error);
+      btn.innerHTML = '✦ Parse &amp; File';
+      btn.disabled = false;
+      return;
+    }
     const raw = data.content?.map(c=>c.text||'').join('') || '[]';
     const clean = raw.replace(/```json|```/g,'').trim();
     capturedItems = JSON.parse(clean);
@@ -2197,7 +2250,7 @@ async function runAI(prompt) {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers: API_HEADERS,
+      headers: getApiHeaders(),
       body: JSON.stringify({
         model:'claude-sonnet-4-6', max_tokens:1000,
         system:`You are a direct, no-fluff construction PM assistant for Faye of Foro Consulting Inc. in the Philippines. She manages LOPA (7 houses, finishing, August 2025 target) and Laiya Beach House. She is solo — no admin support. Be concise, prioritize ruthlessly, give clear next steps. Current data: ${buildContext()}`,
@@ -2228,7 +2281,7 @@ async function aiSuggestPriorities() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers: API_HEADERS,
+      headers: getApiHeaders(),
       body: JSON.stringify({
         model:'claude-sonnet-4-6', max_tokens:600,
         system:'Return ONLY a JSON array of exactly 5 priority objects with "text" field. No markdown, no explanation.',
