@@ -1034,6 +1034,18 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
   </div>
 </div>
 
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="m-edit">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="edit-modal-title">Edit Entry</div><button class="modal-close" onclick="closeModal('m-edit')">×</button></div>
+    <div class="modal-body" id="edit-modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-edit')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- NOTIF -->
 <div class="notif" id="notif"></div>
 
@@ -1427,6 +1439,7 @@ function renderIssues() {
         <select class="inline-select" onchange="updateIssueStatus(${i.id},this.value)">
           ${['Open','In Progress','Resolved'].map(s=>`<option ${i.status===s?'selected':''}>${s}</option>`).join('')}
         </select>
+        <button class="del-btn" title="Edit" onclick="openEdit('issues',${i.id})" style="color:var(--text-light);font-size:12px;padding:0 5px;">✎</button>
         <button class="del-btn" onclick="del('issues',${i.id})">×</button>
       </div>
     </div>`).join('');
@@ -1472,7 +1485,10 @@ function renderOSM() {
         ${['Not Ordered','For Approval','Ordered','Delivered','Installed'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}
       </select></td>
       <td style="font-size:11px;color:var(--text-muted);">${o.notes||'—'}</td>
-      <td><button class="del-btn" onclick="del('osm',${o.id})">×</button></td>
+      <td style="display:flex;gap:4px;align-items:center;">
+        <button class="del-btn" title="Edit" onclick="openEdit('osm',${o.id})" style="color:var(--text-light);font-size:12px;padding:0 5px;">✎</button>
+        <button class="del-btn" onclick="del('osm',${o.id})">×</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1523,7 +1539,10 @@ function renderBilling() {
       <td><select class="inline-select" onchange="updateBillingStatus(${b.id},this.value)">
         ${['Submitted','For Review','Reviewed','Endorsed','For Payment','Paid','Disputed'].map(s=>`<option ${b.status===s?'selected':''}>${s}</option>`).join('')}
       </select></td>
-      <td><button class="del-btn" onclick="del('billing',${b.id})">×</button></td>
+      <td style="display:flex;gap:4px;align-items:center;">
+        <button class="del-btn" title="Edit" onclick="openEdit('billing',${b.id})" style="color:var(--text-light);font-size:12px;padding:0 5px;">✎</button>
+        <button class="del-btn" onclick="del('billing',${b.id})">×</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1596,6 +1615,7 @@ function renderCoordination() {
           <select class="inline-select" onchange="updateFUStatus(${f.id},this.value)">
             ${['Pending','Done'].map(s=>`<option ${f.status===s?'selected':''}>${s}</option>`).join('')}
           </select>
+          <button class="del-btn" title="Edit" onclick="openEdit('followups',${f.id})" style="color:var(--text-light);font-size:12px;padding:0 5px;">✎</button>
           <button class="del-btn" onclick="del('followups',${f.id})">×</button>
         </div>
       </div>`).join(''); }
@@ -1617,6 +1637,7 @@ function renderCoordination() {
           <select class="inline-select" onchange="updateActionStatus(${a.id},this.value)">
             ${['Open','In Progress','Done'].map(s=>`<option ${a.status===s?'selected':''}>${s}</option>`).join('')}
           </select>
+          <button class="del-btn" title="Edit" onclick="openEdit('actions',${a.id})" style="color:var(--text-light);font-size:12px;padding:0 5px;">✎</button>
           <button class="del-btn" onclick="del('actions',${a.id})">×</button>
         </div>
       </div>`).join(''); }
@@ -1770,6 +1791,7 @@ function renderMilestones() {
               ${['Not Started','In Progress','Completed','Delayed'].map(s=>`<option ${m.status===s?'selected':''}>${s}</option>`).join('')}
             </select>
             <input type="date" class="form-input" style="width:130px;padding:3px 6px;font-size:11px;" value="${m.actual||''}" onchange="updateMSActual(${m.id},this.value)" placeholder="Actual date">
+            <button class="del-btn" title="Edit" onclick="openEdit('milestones',${m.id})" style="color:var(--text-light);font-size:12px;padding:0 5px;">✎</button>
             <button class="del-btn" onclick="del('milestones',${m.id})">×</button>
           </div>`).join('')}
       </div>
@@ -1813,7 +1835,10 @@ function renderRisks() {
         <div class="risk-mitigation">L${r.likelihood} × I${r.impact}${r.mitigation?' — '+r.mitigation:''}</div>
         ${r.owner?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Owner: ${r.owner}</div>`:''}
       </div>
-      <button class="del-btn" onclick="del('risks',${r.id})">×</button>
+      <div style="display:flex;gap:4px;">
+        <button class="del-btn" title="Edit" onclick="openEdit('risks',${r.id})" style="color:var(--text-light);font-size:12px;padding:0 5px;">✎</button>
+        <button class="del-btn" onclick="del('risks',${r.id})">×</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1856,7 +1881,10 @@ function renderOwnerLog() {
         <div style="font-size:12px;color:var(--text);margin-top:4px;"><strong>Told:</strong> ${o.told}</div>
         ${o.response?`<div style="font-size:12px;color:var(--text-muted);margin-top:3px;"><strong>Response:</strong> ${o.response}</div>`:''}
       </div>
-      <button class="del-btn" onclick="del('ownerlog',${o.id})">×</button>
+      <div style="display:flex;gap:4px;">
+        <button class="del-btn" title="Edit" onclick="openEdit('ownerlog',${o.id})" style="color:var(--text-light);font-size:12px;padding:0 5px;">✎</button>
+        <button class="del-btn" onclick="del('ownerlog',${o.id})">×</button>
+      </div>
     </div>`).join('');
 }
 
@@ -2076,11 +2104,12 @@ async function runCapture() {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'claude-sonnet-4-6',
         max_tokens:1000,
-        system:`You are a construction PM assistant parsing quick capture notes for Faye of Foro Consulting. Projects: ${projList}. 
-Parse the note and return ONLY a JSON array of items. Each item: { "type": "issue"|"osm"|"followup"|"action"|"ownerlog", "projectId": project id, "house": unit name, "title": clean professional title, "desc": clean detail, "priority": "High"|"Medium"|"Low" (for issues), "person": person name if mentioned, "status": default status }. 
-Fix typos, improve language, be professional. Return ONLY valid JSON array, no markdown.`,
+        system:`You are a construction PM assistant parsing quick capture notes for Faye of Foro Consulting in the Philippines. Projects available: ${projList}. 
+TASK: Parse the note and classify each piece of information. Return ONLY a raw JSON array — no markdown, no backticks, no explanation, just the array starting with [.
+Each object in the array must have: { "type": one of "issue"|"osm"|"followup"|"action"|"ownerlog", "projectId": matching project id from the list above, "house": unit/house name if mentioned (e.g. H3, H5, Laiya Site), "title": clean professional English title fixing all typos, "desc": clean expanded description, "priority": "High"|"Medium"|"Low" (for issues only, default Medium), "person": person or company name if mentioned or empty string }.
+Rules: Fix ALL typos. Improve sentence structure. Be specific. If unclear which project, use the first project id. If multiple things mentioned, create multiple objects. RETURN ONLY THE JSON ARRAY.`,
         messages:[{ role:'user', content: text }]
       })
     });
@@ -2160,7 +2189,7 @@ async function runAI(prompt) {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:1000,
+        model:'claude-sonnet-4-6', max_tokens:1000,
         system:`You are a direct, no-fluff construction PM assistant for Faye of Foro Consulting Inc. in the Philippines. She manages LOPA (7 houses, finishing, August 2025 target) and Laiya Beach House. She is solo — no admin support. Be concise, prioritize ruthlessly, give clear next steps. Current data: ${buildContext()}`,
         messages:[{ role:'user', content:prompt }]
       })
@@ -2191,7 +2220,7 @@ async function aiSuggestPriorities() {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:600,
+        model:'claude-sonnet-4-6', max_tokens:600,
         system:'Return ONLY a JSON array of exactly 5 priority objects with "text" field. No markdown, no explanation.',
         messages:[{ role:'user', content:`Project data: ${buildContext()}. Suggest 5 specific weekly priorities for a solo construction PM.` }]
       })
@@ -2211,6 +2240,221 @@ function addAIPrio(text) {
   if (D.priorities.length >= 5) { notify('Max 5 priorities.'); return; }
   D.priorities.push({ text, done:false }); save(); renderPriorities(); renderOverview(); notify('Priority added.');
 }
+
+// ══════════════════════════════════════
+// UNIVERSAL EDIT
+// ══════════════════════════════════════
+let editState = { collection: null, id: null };
+
+function openEdit(collection, id) {
+  const item = D[collection].find(x => x.id === id);
+  if (!item) return;
+  editState = { collection, id };
+
+  const projOpts = D.projects.map(p => `<option value="${p.id}" ${item.projectId===p.id||item.project===p.id?'selected':''}>${p.name}</option>`).join('');
+  const allUnits = D.projects.flatMap(p => p.units).map(u => `<option ${item.house===u?'selected':''}>${u}</option>`).join('');
+  const titles = { issues:'Edit Issue', osm:'Edit OSM Item', billing:'Edit Billing', followups:'Edit Follow-up', actions:'Edit Action Item', coordlogs:'Edit Log Entry', risks:'Edit Risk', ownerlog:'Edit Owner Log', milestones:'Edit Milestone' };
+  document.getElementById('edit-modal-title').textContent = titles[collection] || 'Edit Entry';
+
+  let html = '';
+
+  if (collection === 'issues') {
+    html = `
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="e-proj" onchange="updateEditHouse(this.value)">${projOpts}</select></div>
+        <div class="form-group"><label class="form-label">House / Area</label><select class="form-select" id="e-house">${allUnits}</select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="e-title" value="${esc(item.title)}"></div>
+      <div class="form-group"><label class="form-label">Details</label><textarea class="form-textarea" id="e-desc">${esc(item.desc)}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="form-select" id="e-cat">${['Waterproofing','Electrical','Plumbing','Structural','Finishing','OSM / Materials','Design / Plans','Contractor','Schedule','Other'].map(s=>`<option ${item.category===s?'selected':''}>${s}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label class="form-label">Priority</label>
+          <select class="form-select" id="e-pri">${['High','Medium','Low'].map(s=>`<option ${item.priority===s?'selected':''}>${s}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Assigned To</label><input type="text" class="form-input" id="e-assigned" value="${esc(item.assigned)}"></div>
+        <div class="form-group"><label class="form-label">Target Date</label><input type="date" class="form-input" id="e-date" value="${item.date||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select class="form-select" id="e-status">${['Open','In Progress','Resolved'].map(s=>`<option ${item.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      </div>`;
+  } else if (collection === 'osm') {
+    html = `
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">House</label><select class="form-select" id="e-house">${allUnits}</select></div>
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="form-select" id="e-cat">${['Doors & Windows','Tiles & Flooring','Kitchen','Cabinets & Vanities','Appliances','Lighting & Fans','Electrical','Plumbing Fixtures','Hardware & Accessories','Other'].map(s=>`<option ${item.category===s?'selected':''}>${s}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Item Name</label><input type="text" class="form-input" id="e-item" value="${esc(item.item)}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Owner / Supplier</label><input type="text" class="form-input" id="e-owner" value="${esc(item.owner)}"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="e-status">${['Not Ordered','For Approval','Ordered','Delivered','Installed'].map(s=>`<option ${item.status===s?'selected':''}>${s}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="e-notes">${esc(item.notes)}</textarea></div>`;
+  } else if (collection === 'billing') {
+    const conOpts = D.contractors.map(c=>`<option ${item.contractor===c.name?'selected':''}>${c.name}</option>`).join('');
+    html = `
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="e-proj">${projOpts}</select></div>
+        <div class="form-group"><label class="form-label">Contractor</label><input type="text" class="form-input" id="e-contractor" value="${esc(item.contractor)}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><input type="text" class="form-input" id="e-desc" value="${esc(item.desc)}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Amount (₱)</label><input type="number" class="form-input" id="e-amount" value="${item.amount||''}"></div>
+        <div class="form-group"><label class="form-label">Date Submitted</label><input type="date" class="form-input" id="e-submitted" value="${item.submitted||''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Endorse By</label><input type="date" class="form-input" id="e-endorse" value="${item.endorse||''}"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="e-status">${['Submitted','For Review','Reviewed','Endorsed','For Payment','Paid','Disputed'].map(s=>`<option ${item.status===s?'selected':''}>${s}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="e-notes">${esc(item.notes)}</textarea></div>`;
+  } else if (collection === 'followups') {
+    html = `
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="e-proj">${projOpts}</select></div>
+        <div class="form-group"><label class="form-label">Person</label><input type="text" class="form-input" id="e-person" value="${esc(item.person)}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">What to Follow Up On</label><input type="text" class="form-input" id="e-what" value="${esc(item.what)}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Follow Up By</label><input type="date" class="form-input" id="e-date" value="${item.date||''}"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="e-status">${['Pending','Done'].map(s=>`<option ${item.status===s?'selected':''}>${s}</option>`).join('')}</select>
+        </div>
+      </div>`;
+  } else if (collection === 'actions') {
+    html = `
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="e-proj">${projOpts}</select></div>
+        <div class="form-group"><label class="form-label">Assigned To</label><input type="text" class="form-input" id="e-person" value="${esc(item.person)}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Action</label><input type="text" class="form-input" id="e-what" value="${esc(item.what)}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Due Date</label><input type="date" class="form-input" id="e-date" value="${item.date||''}"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="e-status">${['Open','In Progress','Done'].map(s=>`<option ${item.status===s?'selected':''}>${s}</option>`).join('')}</select>
+        </div>
+      </div>`;
+  } else if (collection === 'risks') {
+    html = `
+      <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="e-proj">${projOpts}</select></div>
+      <div class="form-group"><label class="form-label">Risk Description</label><input type="text" class="form-input" id="e-desc" value="${esc(item.desc)}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Likelihood (1–5)</label>
+          <select class="form-select" id="e-like">${[1,2,3,4,5].map(n=>`<option ${item.likelihood===n?'selected':''}>${n}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label class="form-label">Impact (1–5)</label>
+          <select class="form-select" id="e-impact">${[1,2,3,4,5].map(n=>`<option ${item.impact===n?'selected':''}>${n}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Mitigation Plan</label><textarea class="form-textarea" id="e-mit">${esc(item.mitigation)}</textarea></div>
+      <div class="form-group"><label class="form-label">Owner</label><input type="text" class="form-input" id="e-owner" value="${esc(item.owner)}"></div>`;
+  } else if (collection === 'ownerlog') {
+    html = `
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="e-proj">${projOpts}</select></div>
+        <div class="form-group"><label class="form-label">House</label><select class="form-select" id="e-house">${allUnits}</select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Owner Name</label><input type="text" class="form-input" id="e-owner" value="${esc(item.owner)}"></div>
+        <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="e-date" value="${item.date||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Channel</label>
+        <select class="form-select" id="e-channel">${['WhatsApp','Call','Email','Site Visit','Meeting','Other'].map(s=>`<option ${item.channel===s?'selected':''}>${s}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="form-label">What You Told Them</label><textarea class="form-textarea" id="e-told">${esc(item.told)}</textarea></div>
+      <div class="form-group"><label class="form-label">Their Response</label><textarea class="form-textarea" id="e-response">${esc(item.response)}</textarea></div>`;
+  } else if (collection === 'milestones') {
+    html = `
+      <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="e-proj">${projOpts}</select></div>
+      <div class="form-group"><label class="form-label">Milestone Name</label><input type="text" class="form-input" id="e-name" value="${esc(item.name)}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Target Date</label><input type="date" class="form-input" id="e-target" value="${item.target||''}"></div>
+        <div class="form-group"><label class="form-label">Actual Date</label><input type="date" class="form-input" id="e-actual" value="${item.actual||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select class="form-select" id="e-status">${['Not Started','In Progress','Completed','Delayed'].map(s=>`<option ${item.status===s?'selected':''}>${s}</option>`).join('')}</select>
+      </div>`;
+  } else if (collection === 'coordlogs') {
+    html = `
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Project</label><select class="form-select" id="e-proj">${projOpts}</select></div>
+        <div class="form-group"><label class="form-label">With / About</label><input type="text" class="form-input" id="e-with" value="${esc(item.with)}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="e-date" value="${item.date||''}"></div>
+      <div class="form-group"><label class="form-label">What Was Discussed</label><textarea class="form-textarea" id="e-discussed">${esc(item.discussed)}</textarea></div>
+      <div class="form-group"><label class="form-label">What Was Decided</label><textarea class="form-textarea" id="e-decided">${esc(item.decided)}</textarea></div>`;
+  }
+
+  document.getElementById('edit-modal-body').innerHTML = html;
+  document.getElementById('m-edit').classList.add('open');
+}
+
+function updateEditHouse(projId) {
+  const units = D.projects.find(p=>p.id===projId)?.units || [];
+  const el = document.getElementById('e-house');
+  if (el) el.innerHTML = units.map(u=>`<option>${u}</option>`).join('');
+}
+
+function saveEdit() {
+  const { collection, id } = editState;
+  const item = D[collection].find(x => x.id === id);
+  if (!item) return;
+
+  const g = (elId) => { const el = document.getElementById(elId); return el ? el.value.trim() : ''; };
+
+  if (collection === 'issues') {
+    item.projectId = g('e-proj'); item.house = g('e-house');
+    item.title = g('e-title'); item.desc = g('e-desc');
+    item.category = g('e-cat'); item.priority = g('e-pri');
+    item.assigned = g('e-assigned'); item.date = g('e-date'); item.status = g('e-status');
+  } else if (collection === 'osm') {
+    item.house = g('e-house'); item.category = g('e-cat');
+    item.item = g('e-item'); item.owner = g('e-owner');
+    item.status = g('e-status'); item.notes = g('e-notes');
+  } else if (collection === 'billing') {
+    item.projectId = g('e-proj'); item.contractor = g('e-contractor');
+    item.desc = g('e-desc'); item.amount = parseFloat(g('e-amount'))||0;
+    item.submitted = g('e-submitted'); item.endorse = g('e-endorse');
+    item.status = g('e-status'); item.notes = g('e-notes');
+  } else if (collection === 'followups') {
+    item.projectId = g('e-proj'); item.person = g('e-person');
+    item.what = g('e-what'); item.date = g('e-date'); item.status = g('e-status');
+  } else if (collection === 'actions') {
+    item.projectId = g('e-proj'); item.person = g('e-person');
+    item.what = g('e-what'); item.date = g('e-date'); item.status = g('e-status');
+  } else if (collection === 'risks') {
+    item.projectId = g('e-proj'); item.desc = g('e-desc');
+    item.likelihood = parseInt(g('e-like'))||1; item.impact = parseInt(g('e-impact'))||1;
+    item.score = item.likelihood * item.impact;
+    item.mitigation = g('e-mit'); item.owner = g('e-owner');
+  } else if (collection === 'ownerlog') {
+    item.projectId = g('e-proj'); item.house = g('e-house');
+    item.owner = g('e-owner'); item.date = g('e-date');
+    item.channel = g('e-channel'); item.told = g('e-told'); item.response = g('e-response');
+  } else if (collection === 'milestones') {
+    item.project = g('e-proj'); item.name = g('e-name');
+    item.target = g('e-target'); item.actual = g('e-actual'); item.status = g('e-status');
+  } else if (collection === 'coordlogs') {
+    item.projectId = g('e-proj'); item.with = g('e-with');
+    item.date = g('e-date'); item.discussed = g('e-discussed'); item.decided = g('e-decided');
+  }
+
+  save(); closeModal('m-edit'); renderAll(); notify('Changes saved.');
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 </script>
 </body>
 </html>
